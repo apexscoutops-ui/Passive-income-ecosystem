@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Room BTU Calculator</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --card: #1e293b;
+            --accent: #38bdf8;
+            --accent-hover: #0ea5e9;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+            --border: #334155;
+            --error: #f87171;
+            --cta: #22c55e;
+            --cta-hover: #16a34a;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: var(--bg);
+            color: var(--text);
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        }
+
+        .calculator {
+            width: 100%;
+            max-width: 480px;
+            padding: 24px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            margin: 0 0 4px;
+            font-size: 1.5rem;
+            text-align: center;
+        }
+
+        .subtitle {
+            margin: 0 0 20px;
+            font-size: 0.875rem;
+            text-align: center;
+            color: var(--muted);
+        }
+
+        .field { margin-bottom: 16px; }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px 12px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text);
+            font: inherit;
+            font-size: 1rem;
+        }
+
+        input:focus-visible, select:focus-visible, button:focus-visible, a:focus-visible {
+            outline: 2px solid var(--accent);
+            outline-offset: 2px;
+        }
+
+        input[aria-invalid="true"] { border-color: var(--error); }
+
+        .error {
+            min-height: 1.25em;
+            margin: 0 0 8px;
+            font-size: 0.8125rem;
+            color: var(--error);
+        }
+
+        .calc-btn {
+            width: 100%;
+            padding: 12px;
+            background: var(--accent);
+            color: var(--bg);
+            border: none;
+            border-radius: 6px;
+            font: inherit;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .calc-btn:hover { background: var(--accent-hover); }
+
+        .results {
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+        }
+
+        .results[hidden] { display: none; }
+
+        .result-box {
+            margin-bottom: 16px;
+            padding: 16px;
+            background: var(--bg);
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .result-label {
+            margin-bottom: 4px;
+            font-size: 0.8125rem;
+            color: var(--muted);
+        }
+
+        .result-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .cta {
+            padding: 16px;
+            background: linear-gradient(135deg, #1e3a8a 0%, #1e1b4b 100%);
+            border: 1px solid #3b82f6;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .cta h2 {
+            margin: 0 0 8px;
+            font-size: 1rem;
+        }
+
+        .cta p {
+            margin: 0 0 12px;
+            font-size: 0.8125rem;
+            color: var(--muted);
+        }
+
+        .cta .disclosure {
+            margin: 12px 0 0;
+            font-size: 0.75rem;
+        }
+
+        .affiliate-btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background: var(--cta);
+            color: #fff;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: background-color 0.2s;
+        }
+
+        .affiliate-btn:hover { background: var(--cta-hover); }
+    </style>
+</head>
+<body>
+
+<main class="calculator">
+    <h1>Room BTU Calculator</h1>
+    <p class="subtitle">Find the cooling capacity your room needs.</p>
+
+    <form id="btuForm" novalidate>
+        <div class="field">
+            <label for="roomWidth">Room width (feet)</label>
+            <input type="number" id="roomWidth" inputmode="decimal" placeholder="e.g., 15" min="1" max="200" step="any" required>
+        </div>
+
+        <div class="field">
+            <label for="roomLength">Room length (feet)</label>
+            <input type="number" id="roomLength" inputmode="decimal" placeholder="e.g., 20" min="1" max="200" step="any" required>
+        </div>
+
+        <div class="field">
+            <label for="sunExposure">Sunlight exposure</label>
+            <select id="sunExposure">
+                <option value="shaded">Shaded (cool room)</option>
+                <option value="normal" selected>Average</option>
+                <option value="sunny">Heavy sun or top floor</option>
+            </select>
+        </div>
+
+        <p class="error" id="errorMsg" role="alert"></p>
+
+        <button type="submit" class="calc-btn">Calculate BTU</button>
+    </form>
+
+    <section class="results" id="results" aria-live="polite" hidden>
+        <div class="result-box">
+            <div class="result-label">Recommended cooling capacity</div>
+            <div class="result-value" id="btuResult"></div>
+        </div>
+
+        <div class="cta">
+            <h2>Ready to upgrade your cooling?</h2>
+            <p id="recommendationText"></p>
+            <a class="affiliate-btn" id="affiliateLink" target="_blank" rel="sponsored noopener noreferrer">
+                Check compatible units and pricing
+            </a>
+            <p class="disclosure">We may earn a commission from qualifying purchases made through this link.</p>
+        </div>
+    </section>
+</main>
+
+<script>
+    // --- Settings ---
+    const AFFILIATE_URL = 'https://your-affiliate-network-link.com?subid=calculator_hvac';
+    const BTU_PER_SQFT = 25;      // Common guidance is ~20; lower this if results run high
+    const ROUNDING_STEP = 500;    // Round to standard unit sizes
+    const SUN_FACTORS = { shaded: 0.9, normal: 1, sunny: 1.15 };
+
+    // --- Elements ---
+    const form = document.getElementById('btuForm');
+    const widthInput = document.getElementById('roomWidth');
+    const lengthInput = document.getElementById('roomLength');
+    const sunSelect = document.getElementById('sunExposure');
+    const errorMsg = document.getElementById('errorMsg');
+    const results = document.getElementById('results');
+    const btuResult = document.getElementById('btuResult');
+    const recommendation = document.getElementById('recommendationText');
+    const affiliateLink = document.getElementById('affiliateLink');
+
+    affiliateLink.href = AFFILIATE_URL;
+
+    function isValid(input) {
+        const value = parseFloat(input.value);
+        return Number.isFinite(value) && value >= Number(input.min) && value <= Number(input.max);
+    }
+
+    form.addEventListener('submit', (event) => {
+        event.preventDefault();
+
+        const fields = [widthInput, lengthInput];
+        fields.forEach((f) => f.setAttribute('aria-invalid', String(!isValid(f))));
+
+        if (!fields.every(isValid)) {
+            errorMsg.textContent = 'Enter room width and length between 1 and 200 feet.';
+            results.hidden = true;
+            return;
+        }
+        errorMsg.textContent = '';
+
+        const sqft = parseFloat(widthInput.value) * parseFloat(lengthInput.value);
+        const raw = sqft * BTU_PER_SQFT * (SUN_FACTORS[sunSelect.value] ?? 1);
+        const btu = Math.max(ROUNDING_STEP, Math.round(raw / ROUNDING_STEP) * ROUNDING_STEP);
+
+        const sqftText = Math.round(sqft).toLocaleString();
+        const btuText = btu.toLocaleString();
+
+        btuResult.textContent = `${btuText} BTU`;
+        recommendation.textContent =
+            `For a ${sqftText} sq. ft. room, look for a mini-split or window unit rated near ${btuText} BTU.`;
+        results.hidden = false;
+    });
+</script>
+
+</body>
+</html>
