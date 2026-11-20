@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Answer three questions and get a recommended SaaS tech stack.">
+  <title>StackGen AI: Tech Stack & SaaS Architecture Generator</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-indigo-500 selection:text-white">
+
+  <header class="border-b border-slate-800 bg-slate-900/60 backdrop-blur sticky top-0 z-50">
+    <div class="max-w-3xl mx-auto px-4 py-4 flex justify-between items-center">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-lg shadow-lg shadow-indigo-500/30" aria-hidden="true">⚡</div>
+        <span class="font-bold text-lg tracking-tight">StackGen <span class="text-indigo-400">AI</span></span>
+      </div>
+      <div class="hidden sm:block text-xs text-slate-400 bg-slate-800/80 px-3 py-1 rounded-full border border-slate-700">
+        Pillar 1: Tech & Dev Ecosystem
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-3xl mx-auto px-4 py-10 w-full flex-grow">
+
+    <!-- Intro -->
+    <section id="intro" class="bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-2xl">
+      <h1 class="text-2xl sm:text-3xl font-extrabold mb-3 text-white">SaaS Architecture & Stack Generator</h1>
+      <p class="text-slate-400 mb-6 text-sm sm:text-base leading-relaxed">
+        Answer three quick questions and get a recommended tech stack, with managed service picks and a note on how to scale it.
+      </p>
+      <button id="start-btn" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-8 py-3 rounded-xl shadow-lg shadow-indigo-600/30 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-300">
+        Build my blueprint →
+      </button>
+    </section>
+
+    <!-- Wizard -->
+    <section id="wizard" class="hidden bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-2xl">
+      <div class="flex items-center justify-between mb-6">
+        <span id="step-indicator" class="text-xs font-semibold text-indigo-400"></span>
+        <div id="progress" role="progressbar" aria-label="Progress" aria-valuemin="0" aria-valuemax="3" class="w-32 bg-slate-800 h-2 rounded-full overflow-hidden">
+          <div id="progress-bar" class="bg-indigo-500 h-full transition-all duration-300"></div>
+        </div>
+      </div>
+
+      <div id="step"></div>
+
+      <div class="mt-6 flex justify-between">
+        <button id="back-btn" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium px-6 py-2.5 rounded-xl transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-300">← Back</button>
+        <button id="next-btn" class="ml-auto bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-6 py-2.5 rounded-xl transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-300"></button>
+      </div>
+    </section>
+
+    <!-- Results -->
+    <section id="results" class="hidden bg-gradient-to-br from-indigo-950/80 via-slate-900 to-slate-900 border border-indigo-500/30 rounded-2xl p-6 sm:p-8 shadow-2xl" aria-live="polite">
+      <div class="flex justify-between items-start gap-4 mb-2">
+        <h2 id="results-title" tabindex="-1" class="text-2xl font-extrabold text-white outline-none">Your recommended stack</h2>
+        <button id="reset-btn" class="shrink-0 text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg border border-slate-700 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-300">Start over</button>
+      </div>
+      <p id="results-summary" class="text-sm text-slate-400 mb-6"></p>
+
+      <div id="stack-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6"></div>
+
+      <div class="bg-slate-950/60 border border-slate-800 rounded-xl p-4 mb-6">
+        <h3 class="font-bold text-white text-sm mb-1">How to scale this</h3>
+        <p id="scale-note" class="text-sm text-slate-400 leading-relaxed"></p>
+      </div>
+
+      <div class="bg-slate-950/80 border border-indigo-500/40 rounded-xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div>
+          <h3 class="font-bold text-white text-sm sm:text-base">Want help implementing this?</h3>
+          <p class="text-xs sm:text-sm text-slate-400 mt-1">Get set-up help and partner credits for the services above.</p>
+        </div>
+        <a id="cta-button" href="https://example.com/affiliate-signup" target="_blank" rel="noopener noreferrer sponsored"
+           class="w-full sm:w-auto whitespace-nowrap bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold px-5 py-3 rounded-xl shadow-lg shadow-indigo-600/30 transition-colors text-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-300">
+          Claim partner credit
+        </a>
+      </div>
+      <p class="text-[11px] text-slate-500 mt-3">This is a partner link. We may earn a commission at no cost to you.</p>
+    </section>
+  </main>
+
+  <footer class="border-t border-slate-900 py-6 text-center text-xs text-slate-500">
+    &copy; 2026 StackGen AI. Hosted on Cloudflare Pages.
+  </footer>
+
+  <script>
+    // ---------- Questions ----------
+    const QUESTIONS = [
+      {
+        key: 'appType',
+        title: 'What type of application are you building?',
+        grid: 'grid grid-cols-1 sm:grid-cols-2 gap-3',
+        options: [
+          { value: 'b2b-saas', label: 'B2B SaaS / dashboard', desc: 'User accounts, billing, relational data, secure APIs.' },
+          { value: 'ai-wrapper', label: 'AI / LLM app', desc: 'Streaming responses, vector embeddings, high API concurrency.' },
+          { value: 'ecommerce', label: 'High-traffic e-commerce', desc: 'Fast static pages, checkout integrations, global edge caching.' },
+          { value: 'mobile-backend', label: 'Mobile app backend / API', desc: 'JSON REST or GraphQL endpoints, real-time sync, push notifications.' }
+        ]
+      },
+      {
+        key: 'scale',
+        title: 'What is your target launch scale (monthly active users)?',
+        grid: 'space-y-3',
+        options: [
+          { value: 'mvp', label: 'MVP / bootstrapped', desc: '0 to 5,000 users. Zero fixed monthly cost, ship fast.', tag: 'Free tiers' },
+          { value: 'growth', label: 'Growth / seed funded', desc: '5k to 100k users. Auto-scaling, managed backups, high reliability.', tag: 'Managed cloud' },
+          { value: 'enterprise', label: 'Scale / enterprise ready', desc: '100k+ users. Multi-region redundancy, compliance, low latency.', tag: 'Enterprise' }
+        ]
+      },
+      {
+        key: 'host',
+        title: 'What is your preferred deployment model?',
+        grid: 'space-y-3',
+        options: [
+          { value: 'serverless', label: 'Serverless & edge first', desc: 'No servers to manage, fast global delivery.' },
+          { value: 'paas', label: 'PaaS / containers', desc: 'One deployment pipeline, full control via Docker.' }
+        ]
+      }
+    ];
+
+    const answers = { appType: 'b2b-saas', scale: 'mvp', host: 'serverless' };
+    let step = 0;
+
+    const SCALE_NOTES = {
+      mvp: 'Stay on free tiers and avoid fixed monthly costs. Turn on automated database backups before you launch, and set usage alerts so a traffic spike never surprises you with a bill.',
+      growth: 'Move to paid plans for the database and auth provider, add error monitoring and uptime alerts, and put a cache in front of your most-read endpoints. Test restoring from a backup.',
+      enterprise: 'Plan for multi-region failover, SSO/SAML, audit logging, and a compliance path such as SOC 2 early. Load-test before launch and set explicit latency and uptime targets.'
+    };
+
+    // ---------- Stack rules ----------
+    function buildStack({ appType, scale, host }) {
+      const serverless = host === 'serverless';
+
+      let frontend = serverless
+        ? { name: 'Cloudflare Pages + Vite or Next.js', desc: 'Global edge delivery with fast static hosting.' }
+        : { name: 'React (Vite or Next.js) in a container', desc: 'Deployed with the same pipeline as your API on Render or Fly.io.' };
+
+      let backend = serverless
+        ? { name: 'Cloudflare Workers', desc: 'Low-latency API endpoints deployed worldwide, no servers to manage.' }
+        : { name: 'Node or Python API on Fly.io or Render', desc: 'Dockerized service with autoscaling and zero-downtime deploys.' };
+
+      let database = { name: 'Neon Serverless Postgres', desc: 'Auto-scaling SQL database with branching for safe schema changes.' };
+      let auth = { name: 'Clerk or Supabase Auth', desc: 'Drop-in authentication and session management.' };
+
+      if (appType === 'ai-wrapper') {
+        backend = serverless
+          ? { name: 'Cloudflare Workers + Workers AI', desc: 'Streams LLM responses from the edge and calls hosted models directly.' }
+          : { name: 'Containerized API + LangChain or LlamaIndex', desc: 'Long-lived connections for streaming, with room for background jobs.' };
+        database = { name: 'Postgres with pgvector, or Pinecone', desc: 'Relational data and vector search. Cloudflare Vectorize fits if you run on Workers.' };
+      } else if (appType === 'ecommerce') {
+        frontend = serverless
+          ? { name: 'Cloudflare Pages + Astro or Remix', desc: 'Edge-cached product catalogs with minimal layout shift.' }
+          : { name: 'Astro or Remix behind a CDN', desc: 'Cached product pages served from containers via a global CDN.' };
+        backend = { ...backend, desc: backend.desc + ' Pair with Stripe or Shopify for checkout.' };
+      } else if (appType === 'mobile-backend') {
+        backend = { ...backend, desc: backend.desc + ' Add Firebase Cloud Messaging or OneSignal for push, and WebSockets for real-time sync.' };
+      }
+
+      if (scale === 'mvp') {
+        auth = { name: 'Supabase Auth or Clerk (free tier)', desc: 'Generous free plans so you can launch without fixed costs.' };
+      } else if (scale === 'enterprise') {
+        database = { name: 'Amazon Aurora Serverless v2', desc: 'Multi-AZ high availability with automated failover and optional multi-region replication.' };
+        auth = { name: 'Auth0 or WorkOS', desc: 'SSO/SAML, SCIM provisioning and audit logs for enterprise customers.' };
+      }
+
+      return [
+        { label: 'Frontend and edge', ...frontend },
+        { label: 'Backend and compute', ...backend },
+        { label: 'Database and storage', ...database },
+        { label: 'Authentication and security', ...auth }
+      ];
+    }
+
+    // ---------- Rendering ----------
+    const $ = (id) => document.getElementById(id);
+    const labelFor = (key, value) => QUESTIONS.find(q => q.key === key).options.find(o => o.value === value).label;
+
+    function show(id) {
+      ['intro', 'wizard', 'results'].forEach(s => $(s).classList.toggle('hidden', s !== id));
+    }
+
+    function renderStep() {
+      const q = QUESTIONS[step];
+      $('step').innerHTML = `
+        <fieldset>
+          <legend id="q-title" tabindex="-1" class="text-xl font-bold mb-4 text-white outline-none">${q.title}</legend>
+          <div class="${q.grid}">
+            ${q.options.map(o => `
+              <label class="flex items-center justify-between gap-3 cursor-pointer rounded-xl border border-slate-800 bg-slate-950/50 p-4 transition-colors hover:border-indigo-500 has-[:checked]:border-indigo-500 has-[:checked]:bg-indigo-950/50 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-indigo-400">
+                <span>
+                  <input type="radio" name="${q.key}" value="${o.value}" class="sr-only" ${answers[q.key] === o.value ? 'checked' : ''}>
+                  <span class="block font-bold text-white">${o.label}</span>
+                  <span class="block text-xs text-slate-400 mt-1">${o.desc}</span>
+                </span>
+                ${o.tag ? `<span class="shrink-0 text-indigo-300 text-xs bg-indigo-950/60 px-2.5 py-1 rounded border border-indigo-900">${o.tag}</span>` : ''}
+              </label>`).join('')}
+          </div>
+        </fieldset>`;
+
+      const n = step + 1;
+      $('step-indicator').textContent = `Step ${n} of ${QUESTIONS.length}`;
+      $('progress-bar').style.width = `${(n / QUESTIONS.length) * 100}%`;
+      $('progress').setAttribute('aria-valuenow', n);
+      $('back-btn').classList.toggle('invisible', step === 0);
+      $('next-btn').textContent = step === QUESTIONS.length - 1 ? 'Generate blueprint' : 'Next →';
+    }
+
+    function renderResults() {
+      $('stack-grid').innerHTML = buildStack(answers).map(item => `
+        <div class="bg-slate-950/60 border border-slate-800 p-4 rounded-xl">
+          <span class="text-xs font-semibold text-indigo-400">${item.label}</span>
+          <h3 class="font-bold text-white text-base mt-1">${item.name}</h3>
+          <p class="text-xs text-slate-400 mt-1 leading-relaxed">${item.desc}</p>
+        </div>`).join('');
+
+      $('results-summary').textContent =
+        `For a ${labelFor('appType', answers.appType)} at ${labelFor('scale', answers.scale)} scale, deployed ${labelFor('host', answers.host)}.`;
+      $('scale-note').textContent = SCALE_NOTES[answers.scale];
+
+      show('results');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      $('results-title').focus({ preventScroll: true });
+    }
+
+    // ---------- Events ----------
+    $('start-btn').addEventListener('click', () => {
+      step = 0; renderStep(); show('wizard'); $('q-title').focus({ preventScroll: true });
+    });
+
+    $('step').addEventListener('change', (e) => {
+      if (e.target.matches('input[type="radio"]')) answers[e.target.name] = e.target.value;
+    });
+
+    $('next-btn').addEventListener('click', () => {
+      if (step < QUESTIONS.length - 1) {
+        step++; renderStep(); $('q-title').focus({ preventScroll: true });
+      } else {
+        renderResults();
+      }
+    });
+
+    $('back-btn').addEventListener('click', () => {
+      if (step > 0) { step--; renderStep(); $('q-title').focus({ preventScroll: true }); }
+    });
+
+    $('reset-btn').addEventListener('click', () => {
+      Object.assign(answers, { appType: 'b2b-saas', scale: 'mvp', host: 'serverless' });
+      step = 0;
+      show('intro');
+    });
+
+    // ---------- Optional ?targetUrl= override for the CTA (http/https only) ----------
+    (function applyTargetUrl() {
+      const raw = new URLSearchParams(window.location.search).get('targetUrl');
+      if (!raw) return;
+      try {
+        const url = new URL(raw);
+        if (url.protocol === 'https:' || url.protocol === 'http:') $('cta-button').href = url.href;
+      } catch (_) { /* invalid URL: keep default */ }
+    })();
+  </script>
+</body>
+</html>
