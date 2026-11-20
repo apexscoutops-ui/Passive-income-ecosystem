@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SaaS &amp; Cloud Cost Estimator</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --card: #1e293b;
+            --accent: #38bdf8;
+            --accent-hover: #0ea5e9;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+            --border: #334155;
+            --error: #f87171;
+            --cta: #16a34a;
+            --cta-hover: #15803d;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: var(--bg);
+            color: var(--text);
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        }
+
+        .calculator {
+            width: 100%;
+            max-width: 480px;
+            padding: 24px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+        }
+
+        h1 { margin: 0 0 4px; font-size: 1.5rem; text-align: center; }
+
+        .subtitle {
+            margin: 0 0 20px;
+            font-size: 0.875rem;
+            text-align: center;
+            color: var(--muted);
+        }
+
+        .field { margin-bottom: 16px; }
+
+        label { display: block; margin-bottom: 6px; font-size: 0.875rem; font-weight: 500; }
+
+        input, select {
+            width: 100%;
+            padding: 10px 12px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text);
+            font: inherit;
+        }
+
+        input:focus-visible, select:focus-visible, button:focus-visible, a:focus-visible {
+            outline: 2px solid var(--accent);
+            outline-offset: 2px;
+        }
+
+        input[aria-invalid="true"] { border-color: var(--error); }
+
+        .error {
+            min-height: 1.25em;
+            margin: 0 0 8px;
+            font-size: 0.8125rem;
+            color: var(--error);
+        }
+
+        .calc-btn {
+            width: 100%;
+            padding: 12px;
+            background: var(--accent);
+            color: var(--bg);
+            border: none;
+            border-radius: 6px;
+            font: inherit;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .calc-btn:hover { background: var(--accent-hover); }
+
+        .results {
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+        }
+
+        .results[hidden] { display: none; }
+
+        .result-box {
+            margin-bottom: 16px;
+            padding: 16px;
+            background: var(--bg);
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .result-label { margin-bottom: 4px; font-size: 0.8125rem; color: var(--muted); }
+        .result-value { font-size: 1.75rem; font-weight: 700; color: var(--accent); }
+        .result-note { margin: 6px 0 0; font-size: 0.75rem; color: var(--muted); }
+
+        .cta {
+            padding: 16px;
+            background: linear-gradient(135deg, #1e3a8a 0%, #1e1b4b 100%);
+            border: 1px solid #3b82f6;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .cta h2 { margin: 0 0 8px; font-size: 1rem; }
+        .cta p { margin: 0 0 12px; font-size: 0.8125rem; color: #cbd5e1; }
+        .cta .disclosure { margin: 12px 0 0; font-size: 0.75rem; color: var(--muted); }
+
+        .affiliate-btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background: var(--cta);
+            color: #fff;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: background-color 0.2s;
+        }
+
+        .affiliate-btn:hover { background: var(--cta-hover); }
+    </style>
+</head>
+<body>
+
+<main class="calculator">
+    <h1>SaaS &amp; Cloud Cost Estimator</h1>
+    <p class="subtitle">Estimate your monthly infrastructure cost based on user volume and storage.</p>
+
+    <form id="saasForm" novalidate>
+        <div class="field">
+            <label for="activeUsers">Active monthly users</label>
+            <input type="number" id="activeUsers" inputmode="numeric" placeholder="e.g., 5000"
+                   min="100" max="1000000" step="1" required aria-describedby="errorMsg">
+        </div>
+
+        <div class="field">
+            <label for="serverTier">Infrastructure tier</label>
+            <select id="serverTier">
+                <option value="standard" selected>Standard cloud (general purpose)</option>
+                <option value="high_cpu">High CPU (compute optimized)</option>
+                <option value="enterprise">Enterprise multi-region</option>
+            </select>
+        </div>
+
+        <div class="field">
+            <label for="storageGB">Storage (GB)</label>
+            <input type="number" id="storageGB" inputmode="numeric" placeholder="e.g., 100"
+                   min="10" max="50000" step="1" required aria-describedby="errorMsg">
+        </div>
+
+        <p class="error" id="errorMsg" role="alert"></p>
+
+        <button type="submit" class="calc-btn">Estimate monthly cost</button>
+    </form>
+
+    <section class="results" id="results" aria-live="polite" hidden>
+        <div class="result-box">
+            <div class="result-label">Estimated monthly cost</div>
+            <div class="result-value" id="costResult"></div>
+            <p class="result-note">Ballpark figure. Actual pricing varies by provider.</p>
+        </div>
+
+        <div class="cta">
+            <h2>Compare cloud providers</h2>
+            <p id="recommendationText"></p>
+            <a class="affiliate-btn" id="affiliateLink" target="_blank"
+               rel="sponsored noopener noreferrer">Compare providers</a>
+            <p class="disclosure">We may earn an affiliate commission from qualifying signups.</p>
+        </div>
+    </section>
+</main>
+
+<script>
+    // ---------- Configuration ----------
+    const CONFIG = {
+        // Replace with your affiliate (or future bot funnel) URL.
+        targetUrl: 'https://your-affiliate-network-link.com',
+        subId: 'site_dev_01',
+        // Pricing model: base = users * perUser + storageGB * perGB, then x tier multiplier.
+        // These rates are placeholders; tune them to real provider pricing.
+        perUser: 0.005,
+        perGB: 0.10,
+        minMonthly: 10,
+        tiers: {
+            standard:   { label: 'standard cloud',   multiplier: 1.0 },
+            high_cpu:   { label: 'high-CPU',         multiplier: 1.6 },
+            enterprise: { label: 'enterprise multi-region', multiplier: 3.0 }
+        }
+    };
+
+    // ---------- Elements ----------
+    const $ = (id) => document.getElementById(id);
+    const form = $('saasForm');
+    const usersInput = $('activeUsers');
+    const storageInput = $('storageGB');
+    const tierSelect = $('serverTier');
+    const errorMsg = $('errorMsg');
+    const results = $('results');
+    const costResult = $('costResult');
+    const recommendation = $('recommendationText');
+    const affiliateLink = $('affiliateLink');
+
+    // ---------- Helpers ----------
+    const isValid = (input) => {
+        const value = Number(input.value);
+        return input.value.trim() !== '' && Number.isFinite(value) &&
+               value >= Number(input.min) && value <= Number(input.max);
+    };
+
+    const fmt = new Intl.NumberFormat('en-US');
+
+    function estimateCost(users, storageGB, tierKey) {
+        const { multiplier } = CONFIG.tiers[tierKey];
+        const raw = (users * CONFIG.perUser + storageGB * CONFIG.perGB) * multiplier;
+        return Math.max(CONFIG.minMonthly, Math.round(raw));
+    }
+
+    function buildLink(tierKey, monthlyCost) {
+        const url = new URL(CONFIG.targetUrl);
+        url.searchParams.set('subid', CONFIG.subId);
+        url.searchParams.set('tier', tierKey);
+        url.searchParams.set('est', monthlyCost);
+        return url.toString();
+    }
+
+    // ---------- Submit ----------
+    form.addEventListener('submit', (event) => {
+        event.preventDefault();
+
+        const fields = [usersInput, storageInput];
+        fields.forEach((f) => f.setAttribute('aria-invalid', String(!isValid(f))));
+
+        if (!fields.every(isValid)) {
+            errorMsg.textContent =
+                `Enter users between ${fmt.format(usersInput.min)} and ${fmt.format(usersInput.max)}, ` +
+                `and storage between ${fmt.format(storageInput.min)} and ${fmt.format(storageInput.max)} GB.`;
+            results.hidden = true;
+            return;
+        }
+        errorMsg.textContent = '';
+
+        const users = Number(usersInput.value);
+        const storage = Number(storageInput.value);
+        const tierKey = tierSelect.value;
+        const monthlyCost = estimateCost(users, storage, tierKey);
+
+        costResult.textContent = `$${fmt.format(monthlyCost)}/mo`;
+        recommendation.textContent =
+            `Running ${fmt.format(users)} users on a ${CONFIG.tiers[tierKey].label} setup? ` +
+            `Prices vary widely between providers, so it pays to compare.`;
+        affiliateLink.href = buildLink(tierKey, monthlyCost);
+        results.hidden = false;
+    });
+</script>
+
+</body>
+</html>
