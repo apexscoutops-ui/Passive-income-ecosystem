@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark">
+  <meta name="description" content="Estimate how much you could save by moving cloud compute, storage and database workloads to a serverless architecture.">
+  <title>Cloud Migration ROI Calculator</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <style>
+    @media (prefers-reduced-motion: reduce) {
+      * { scroll-behavior: auto !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-cyan-500 selection:text-white">
+
+  <header class="border-b border-slate-800 bg-slate-900/60 backdrop-blur sticky top-0 z-50">
+    <div class="max-w-3xl mx-auto px-4 py-4 flex items-center gap-2">
+      <div class="w-8 h-8 rounded-lg bg-cyan-600 flex items-center justify-center text-lg shadow-lg shadow-cyan-500/30" aria-hidden="true">☁️</div>
+      <span class="font-bold text-lg tracking-tight">CloudMigrate <span class="text-cyan-400">ROI</span></span>
+    </div>
+  </header>
+
+  <main class="max-w-3xl mx-auto px-4 py-10 w-full flex-grow">
+
+    <section id="form-section" class="bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-2xl">
+      <h1 class="text-2xl sm:text-3xl font-extrabold mb-3 text-white">Cloud migration savings calculator</h1>
+      <p class="text-slate-400 mb-6 text-sm sm:text-base leading-relaxed max-w-prose">
+        Enter your current monthly cloud spend to estimate what you could save by moving to serverless and edge infrastructure.
+      </p>
+
+      <form id="calc-form" class="space-y-6" novalidate>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div>
+            <label for="compute-input" class="block text-sm font-semibold text-slate-200 mb-2">Compute ($/month)</label>
+            <input type="number" inputmode="decimal" id="compute-input" value="1200" min="0" step="any"
+                   class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan-500 focus-visible:ring-2 focus-visible:ring-cyan-500/40 transition-colors">
+          </div>
+          <div>
+            <label for="storage-input" class="block text-sm font-semibold text-slate-200 mb-2">Storage and egress ($/month)</label>
+            <input type="number" inputmode="decimal" id="storage-input" value="450" min="0" step="any"
+                   class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan-500 focus-visible:ring-2 focus-visible:ring-cyan-500/40 transition-colors">
+          </div>
+          <div>
+            <label for="db-input" class="block text-sm font-semibold text-slate-200 mb-2">Database ($/month)</label>
+            <input type="number" inputmode="decimal" id="db-input" value="800" min="0" step="any"
+                   class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan-500 focus-visible:ring-2 focus-visible:ring-cyan-500/40 transition-colors">
+          </div>
+        </div>
+
+        <p id="form-error" role="alert" class="hidden text-sm text-red-400">Enter at least one monthly amount greater than $0.</p>
+
+        <button type="submit"
+                class="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-semibold py-3.5 rounded-xl shadow-lg shadow-cyan-600/30 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300">
+          Calculate savings
+        </button>
+      </form>
+    </section>
+
+    <section id="results" class="hidden mt-6 bg-gradient-to-br from-cyan-950/80 via-slate-900 to-slate-900 border border-cyan-500/30 rounded-2xl p-6 sm:p-8 shadow-2xl">
+      <div class="flex justify-between items-start gap-4 mb-6">
+        <h2 id="results-title" tabindex="-1" class="text-2xl font-extrabold text-white outline-none">Estimated savings</h2>
+        <button type="button" id="recalc-btn"
+                class="shrink-0 text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg border border-slate-700 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-300">
+          Edit inputs
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        <div class="bg-slate-950/60 border border-slate-800 p-4 rounded-xl text-center">
+          <span class="text-xs font-semibold text-cyan-400">Current monthly spend</span>
+          <p id="current-spend" class="text-2xl font-extrabold text-white mt-1">$0</p>
+        </div>
+        <div class="bg-slate-950/60 border border-slate-800 p-4 rounded-xl text-center">
+          <span class="text-xs font-semibold text-cyan-400">Estimated new monthly spend</span>
+          <p id="new-spend" class="text-2xl font-extrabold text-cyan-300 mt-1">$0</p>
+        </div>
+        <div class="bg-slate-950/60 border border-slate-800 p-4 rounded-xl text-center">
+          <span class="text-xs font-semibold text-emerald-400">Estimated annual savings</span>
+          <p id="annual-savings" class="text-2xl font-extrabold text-emerald-300 mt-1">$0</p>
+        </div>
+      </div>
+
+      <div class="bg-slate-950/60 border border-slate-800 rounded-xl p-4 mb-3">
+        <h3 class="font-bold text-white text-sm mb-1">Where to start</h3>
+        <p id="migration-tip" class="text-sm text-slate-400 leading-relaxed"></p>
+      </div>
+      <p id="assumption-note" class="text-xs text-slate-500 mb-6"></p>
+
+      <div class="bg-slate-950/80 border border-cyan-500/40 rounded-xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div>
+          <h3 class="font-bold text-white text-sm sm:text-base">Ready to move?</h3>
+          <p class="text-xs sm:text-sm text-slate-400 mt-1">Get partner credits and review migration options.</p>
+        </div>
+        <a id="cta-button" href="https://example.com/affiliate-signup" target="_blank" rel="noopener noreferrer sponsored"
+           class="w-full sm:w-auto whitespace-nowrap bg-cyan-600 hover:bg-cyan-500 text-white text-sm font-bold px-5 py-3 rounded-xl shadow-lg shadow-cyan-600/30 transition-colors text-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300">
+          Claim partner credit
+        </a>
+      </div>
+      <p class="text-xs text-slate-500 mt-3">Affiliate disclosure: we may earn a commission on qualifying signups at no cost to you.</p>
+    </section>
+  </main>
+
+  <footer class="border-t border-slate-900 py-6 text-center text-xs text-slate-500">
+    &copy; 2026 CloudMigrate ROI
+  </footer>
+
+  <script>
+    // Assumed average cost reduction from moving to serverless/edge. Adjust to match your own data.
+    const SAVINGS_RATE = 0.55;
+
+    const TIPS = {
+      compute: 'Compute is your largest cost. Moving steady, always-on workloads to serverless or edge functions removes idle capacity you pay for today.',
+      storage: 'Storage and egress is your largest cost. Putting a CDN or edge cache in front of your data and using low-cost object storage can cut transfer fees.',
+      db: 'Database is your largest cost. Right-sizing instances or switching to an auto-scaling or serverless database avoids paying for unused capacity.'
+    };
+
+    const $ = (id) => document.getElementById(id);
+    const money = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
+    const readAmount = (id) => Math.max(0, parseFloat($(id).value) || 0);
+
+    $('calc-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      const amounts = {
+        compute: readAmount('compute-input'),
+        storage: readAmount('storage-input'),
+        db: readAmount('db-input')
+      };
+      const current = amounts.compute + amounts.storage + amounts.db;
+
+      if (current <= 0) {
+        $('form-error').classList.remove('hidden');
+        $('compute-input').focus();
+        return;
+      }
+      $('form-error').classList.add('hidden');
+
+      const monthlySavings = current * SAVINGS_RATE;
+      const largest = Object.keys(amounts).reduce((a, b) => (amounts[a] >= amounts[b] ? a : b));
+
+      $('current-spend').textContent = money.format(current);
+      $('new-spend').textContent = money.format(current - monthlySavings);
+      $('annual-savings').textContent = money.format(monthlySavings * 12);
+      $('migration-tip').textContent = TIPS[largest];
+      $('assumption-note').textContent =
+        `Estimate assumes an average ${Math.round(SAVINGS_RATE * 100)}% reduction across all three categories. Actual savings depend on your workloads.`;
+
+      $('form-section').classList.add('hidden');
+      $('results').classList.remove('hidden');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      $('results-title').focus({ preventScroll: true });
+    });
+
+    $('recalc-btn').addEventListener('click', () => {
+      $('results').classList.add('hidden');
+      $('form-section').classList.remove('hidden');
+      $('compute-input').focus();
+    });
+  </script>
+</body>
+</html>
