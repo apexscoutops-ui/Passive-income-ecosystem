@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark">
+  <meta name="description" content="Calculate your startup's cash runway, net monthly burn, and months to profitability.">
+  <title>RunwayCalc: SaaS Burn Rate &amp; Cash Runway Calculator</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-violet-500 selection:text-white">
+
+  <header class="border-b border-slate-800 bg-slate-900/60 backdrop-blur sticky top-0 z-50">
+    <div class="max-w-3xl mx-auto px-4 py-4 flex items-center gap-2">
+      <div class="w-8 h-8 rounded-lg bg-violet-600 flex items-center justify-center text-lg shadow-lg shadow-violet-500/30" aria-hidden="true">💸</div>
+      <span class="font-bold text-lg tracking-tight">RunwayCalc <span class="text-violet-400">SaaS</span></span>
+    </div>
+  </header>
+
+  <main class="max-w-3xl mx-auto px-4 py-10 w-full flex-grow">
+
+    <!-- Inputs -->
+    <section id="form-section" class="bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-2xl">
+      <h1 class="text-2xl sm:text-3xl font-extrabold mb-3 text-white">Startup Cash Runway &amp; Burn Rate Calculator</h1>
+      <p class="text-slate-400 mb-6 text-sm sm:text-base leading-relaxed">
+        Enter your cash balance, monthly recurring revenue (MRR), and monthly operating expenses to see how long your cash will last.
+      </p>
+
+      <form id="calc-form" class="space-y-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label for="cash-input" class="block text-sm font-semibold text-slate-200 mb-2">Current cash balance ($)</label>
+            <input type="number" id="cash-input" value="150000" min="0" step="1000" inputmode="decimal" required
+                   class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-violet-500 focus-visible:ring-2 focus-visible:ring-violet-500/50 transition-colors">
+          </div>
+          <div>
+            <label for="mrr-input" class="block text-sm font-semibold text-slate-200 mb-2">Monthly recurring revenue ($)</label>
+            <input type="number" id="mrr-input" value="12500" min="0" step="100" inputmode="decimal" required
+                   class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-violet-500 focus-visible:ring-2 focus-visible:ring-violet-500/50 transition-colors">
+          </div>
+          <div>
+            <label for="expenses-input" class="block text-sm font-semibold text-slate-200 mb-2">Monthly operating expenses ($)</label>
+            <input type="number" id="expenses-input" value="25000" min="0" step="500" inputmode="decimal" required
+                   class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-violet-500 focus-visible:ring-2 focus-visible:ring-violet-500/50 transition-colors">
+          </div>
+          <div>
+            <label for="growth-input" class="block text-sm font-semibold text-slate-200 mb-2">Monthly MRR growth rate (%)</label>
+            <input type="number" id="growth-input" value="5" min="0" max="100" step="0.5" inputmode="decimal" required
+                   class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-violet-500 focus-visible:ring-2 focus-visible:ring-violet-500/50 transition-colors">
+          </div>
+        </div>
+
+        <button type="submit"
+                class="w-full bg-violet-600 hover:bg-violet-500 text-white font-semibold py-3.5 rounded-xl shadow-lg shadow-violet-600/30 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-300">
+          Calculate runway
+        </button>
+      </form>
+    </section>
+
+    <!-- Results -->
+    <section id="results" class="hidden mt-6 bg-gradient-to-br from-violet-950/80 via-slate-900 to-slate-900 border border-violet-500/30 rounded-2xl p-6 sm:p-8 shadow-2xl" aria-live="polite">
+      <div class="flex justify-between items-start gap-4 mb-6">
+        <h2 id="results-title" tabindex="-1" class="text-2xl font-extrabold text-white outline-none">Your runway</h2>
+        <button type="button" id="recalc-btn"
+                class="shrink-0 text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg border border-slate-700 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-violet-300">
+          Edit inputs
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        <div class="bg-slate-950/60 border border-slate-800 p-4 rounded-xl text-center">
+          <span id="burn-label" class="text-xs font-semibold text-violet-400">Net monthly burn</span>
+          <p id="net-burn" class="text-2xl font-extrabold text-white mt-1">–</p>
+        </div>
+        <div class="bg-slate-950/60 border border-slate-800 p-4 rounded-xl text-center">
+          <span class="text-xs font-semibold text-violet-400">Runway</span>
+          <p id="runway-months" class="text-2xl font-extrabold text-violet-300 mt-1">–</p>
+        </div>
+        <div class="bg-slate-950/60 border border-slate-800 p-4 rounded-xl text-center">
+          <span class="text-xs font-semibold text-emerald-400">Break-even</span>
+          <p id="breakeven-months" class="text-2xl font-extrabold text-emerald-300 mt-1">–</p>
+        </div>
+      </div>
+
+      <div class="bg-slate-950/60 border border-slate-800 rounded-xl p-4 mb-6">
+        <h3 class="font-bold text-white text-sm mb-1">What this means</h3>
+        <p id="runway-tip" class="text-sm text-slate-400 leading-relaxed"></p>
+      </div>
+      <p class="text-xs text-slate-500 mb-6">
+        Runway assumes your expenses stay flat and MRR grows at the rate you entered. Estimates only, not financial advice.
+      </p>
+
+      <!-- Affiliate CTA: replace the href with your real affiliate link -->
+      <div class="bg-slate-950/80 border border-violet-500/40 rounded-xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div>
+          <h3 class="font-bold text-white text-sm sm:text-base">Want to lower your burn?</h3>
+          <p class="text-xs sm:text-sm text-slate-400 mt-1">Compare startup banking, expense tracking, and software credit offers.</p>
+        </div>
+        <a id="cta-button" href="https://example.com/affiliate-signup" target="_blank" rel="noopener noreferrer sponsored"
+           class="w-full sm:w-auto whitespace-nowrap bg-violet-600 hover:bg-violet-500 text-white text-sm font-bold px-5 py-3 rounded-xl shadow-lg shadow-violet-600/30 transition-colors text-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-300">
+          Compare tools
+        </a>
+      </div>
+      <p class="text-[11px] text-slate-500 mt-3">Affiliate disclosure: we may earn a commission if you sign up through this link, at no cost to you.</p>
+    </section>
+  </main>
+
+  <footer class="border-t border-slate-900 py-6 text-center text-xs text-slate-500">
+    &copy; 2026 RunwayCalc SaaS
+  </footer>
+
+  <script>
+    const MAX_MONTHS = 120; // simulation horizon (10 years)
+
+    const $ = (id) => document.getElementById(id);
+    const money = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
+
+    const formSection = $('form-section');
+    const results = $('results');
+
+    /**
+     * Month-by-month cash simulation with compounding MRR growth.
+     * Returns { runway, breakeven, sustainable }:
+     *  - sustainable: revenue covers expenses before cash runs out
+     *  - runway: months of cash left (capped at MAX_MONTHS)
+     *  - breakeven: first month (1 = now) where MRR >= expenses, or null
+     */
+    function simulate({ cash, mrr, expenses, growth }) {
+      let balance = cash;
+      let revenue = mrr;
+
+      for (let month = 1; month <= MAX_MONTHS; month++) {
+        const burn = expenses - revenue;
+
+        if (burn <= 0) {
+          return { runway: Infinity, breakeven: month, sustainable: true };
+        }
+        if (balance < burn) {
+          // Cash runs out partway through this month
+          return { runway: (month - 1) + balance / burn, breakeven: null, sustainable: false };
+        }
+
+        balance -= burn;
+        revenue *= 1 + growth;
+      }
+      return { runway: MAX_MONTHS, breakeven: null, sustainable: false };
+    }
+
+    function getTip({ runway, sustainable, breakeven }) {
+      if (sustainable) {
+        return breakeven === 1
+          ? 'Your revenue already covers your expenses, so you are cash-flow positive. Consider reinvesting the surplus into growth.'
+          : `At this growth rate, revenue covers expenses in month ${breakeven}, before your cash runs out. Protect that growth and keep costs flat.`;
+      }
+      if (runway < 6) return 'Under 6 months of runway. Cut costs or line up bridge financing now: fundraising typically takes 3 to 6 months.';
+      if (runway < 12) return 'Under 12 months of runway. Start planning your next raise, and look for expenses you can trim.';
+      if (runway < 18) return 'Under 18 months of runway. You have room to operate, but growth or cost cuts will extend it.';
+      return 'You have 18 or more months of runway. Keep tracking burn monthly and revisit this as your numbers change.';
+    }
+
+    function readNumber(id) {
+      const value = parseFloat($(id).value);
+      return Number.isFinite(value) && value >= 0 ? value : 0;
+    }
+
+    $('calc-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      const inputs = {
+        cash: readNumber('cash-input'),
+        mrr: readNumber('mrr-input'),
+        expenses: readNumber('expenses-input'),
+        growth: Math.min(readNumber('growth-input'), 100) / 100,
+      };
+
+      const netBurn = inputs.expenses - inputs.mrr;
+      const sim = simulate(inputs);
+
+      // Net burn (or net profit if revenue exceeds expenses)
+      $('burn-label').textContent = netBurn < 0 ? 'Net monthly profit' : 'Net monthly burn';
+      $('net-burn').textContent = money.format(Math.abs(netBurn));
+
+      // Runway
+      let runwayText;
+      if (sim.sustainable) runwayText = 'Sustainable';
+      else if (sim.runway >= MAX_MONTHS) runwayText = '10+ years';
+      else runwayText = `${sim.runway.toFixed(1)} mo`;
+      $('runway-months').textContent = runwayText;
+
+      // Break-even
+      let breakevenText;
+      if (sim.breakeven === 1) breakevenText = 'Already profitable';
+      else if (sim.breakeven) breakevenText = `Month ${sim.breakeven}`;
+      else breakevenText = 'Not before cash runs out';
+      $('breakeven-months').textContent = breakevenText;
+
+      $('runway-tip').textContent = getTip(sim);
+
+      formSection.classList.add('hidden');
+      results.classList.remove('hidden');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      $('results-title').focus({ preventScroll: true });
+    });
+
+    $('recalc-btn').addEventListener('click', () => {
+      results.classList.add('hidden');
+      formSection.classList.remove('hidden');
+      $('cash-input').focus();
+    });
+  </script>
+</body>
+</html>
