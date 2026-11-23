@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Estimate your home solar system size, payback period, and 25-year savings from your electric bill.">
+  <title>SolarROI: Home Solar Panel Payback & Savings Calculator</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-yellow-500 selection:text-white">
+
+  <header class="border-b border-slate-800 bg-slate-900/60 backdrop-blur sticky top-0 z-50">
+    <div class="max-w-3xl mx-auto px-4 py-4 flex items-center gap-2">
+      <div class="w-8 h-8 rounded-lg bg-yellow-500 flex items-center justify-center text-lg shadow-lg shadow-yellow-500/30" aria-hidden="true">☀️</div>
+      <span class="font-bold text-lg tracking-tight">SolarROI <span class="text-yellow-400">Home</span></span>
+    </div>
+  </header>
+
+  <main class="max-w-3xl mx-auto px-4 py-10 w-full flex-grow">
+
+    <!-- Input form -->
+    <section id="form-section" class="bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-2xl">
+      <h1 class="text-2xl sm:text-3xl font-extrabold mb-3 text-white">Solar Panel ROI & Payback Calculator</h1>
+      <p class="text-slate-400 mb-6 text-sm sm:text-base leading-relaxed">
+        Enter your monthly electric bill and local rate to estimate system size, payback period, and long-term savings.
+      </p>
+
+      <form id="calc-form" class="space-y-6" novalidate>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label for="bill-input" class="block text-sm font-semibold text-slate-200 mb-2">Average Monthly Electric Bill ($)</label>
+            <input type="number" id="bill-input" value="180" min="20" max="2000" step="any" inputmode="decimal" required
+                   class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-yellow-500 transition-colors">
+          </div>
+          <div>
+            <label for="rate-input" class="block text-sm font-semibold text-slate-200 mb-2">Electricity Rate ($ per kWh)</label>
+            <input type="number" id="rate-input" value="0.16" min="0.05" max="0.50" step="any" inputmode="decimal" required
+                   class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-yellow-500 transition-colors">
+          </div>
+        </div>
+
+        <div>
+          <label for="sunlight-select" class="block text-sm font-semibold text-slate-200 mb-2">Average Daily Sunlight</label>
+          <select id="sunlight-select" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-yellow-500 transition-colors">
+            <option value="5.5">High (Southwest US / Florida, 5.5+ peak sun hrs/day)</option>
+            <option value="4.5" selected>Moderate (US average, 4.5 hrs/day)</option>
+            <option value="3.5">Lower (Pacific Northwest / Northeast, 3.5 hrs/day)</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="incentive-input" class="block text-sm font-semibold text-slate-200 mb-2">
+            State / Local Incentives ($) <span class="font-normal text-slate-500">optional</span>
+          </label>
+          <input type="number" id="incentive-input" value="0" min="0" max="100000" step="any" inputmode="decimal"
+                 class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-yellow-500 transition-colors">
+        </div>
+
+        <p id="form-error" class="hidden text-sm text-red-400" role="alert"></p>
+
+        <button type="submit" class="w-full bg-yellow-500 hover:bg-yellow-400 text-slate-950 font-bold py-3.5 rounded-xl shadow-lg shadow-yellow-500/20 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-yellow-300">
+          Calculate Solar ROI →
+        </button>
+      </form>
+    </section>
+
+    <!-- Results -->
+    <section id="results" class="hidden bg-gradient-to-br from-yellow-950/40 via-slate-900 to-slate-900 border border-yellow-500/30 rounded-2xl p-6 sm:p-8 shadow-2xl" aria-live="polite">
+      <div class="flex justify-between items-start gap-4 mb-6">
+        <h2 id="results-title" tabindex="-1" class="text-2xl font-extrabold text-white outline-none">Solar Financial Breakdown</h2>
+        <button id="recalc-btn" type="button" class="shrink-0 text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg border border-slate-700 transition-colors">Edit inputs</button>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        <div class="bg-slate-950/60 border border-slate-800 p-4 rounded-xl text-center">
+          <span class="text-xs font-semibold text-yellow-400">Est. Net System Cost</span>
+          <p id="net-cost" class="text-2xl font-extrabold text-white mt-1">—</p>
+        </div>
+        <div class="bg-slate-950/60 border border-slate-800 p-4 rounded-xl text-center">
+          <span class="text-xs font-semibold text-yellow-400">Payback Period</span>
+          <p id="payback-years" class="text-2xl font-extrabold text-yellow-300 mt-1">—</p>
+        </div>
+        <div class="bg-slate-950/60 border border-slate-800 p-4 rounded-xl text-center">
+          <span class="text-xs font-semibold text-emerald-400">25-Year Net Savings</span>
+          <p id="lifetime-savings" class="text-2xl font-extrabold text-emerald-300 mt-1">—</p>
+        </div>
+      </div>
+
+      <div class="bg-slate-950/60 border border-slate-800 rounded-xl p-4 mb-6">
+        <h3 class="font-bold text-white text-sm mb-1">Solar Production Insight</h3>
+        <p id="solar-tip" class="text-sm text-slate-400 leading-relaxed"></p>
+      </div>
+
+      <div class="bg-slate-950/80 border border-yellow-500/40 rounded-xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div>
+          <h3 class="font-bold text-white text-sm sm:text-base">Ready for precise quotes or DIY solar kits?</h3>
+          <p class="text-xs sm:text-sm text-slate-400 mt-1">Compare local contractor quotes or explore home battery backup equipment.</p>
+        </div>
+        <a id="cta-button" href="https://example.com/affiliate-signup" target="_blank" rel="noopener noreferrer sponsored"
+           class="w-full sm:w-auto whitespace-nowrap bg-yellow-500 hover:bg-yellow-400 text-slate-950 text-sm font-bold px-5 py-3 rounded-xl shadow-lg shadow-yellow-500/20 transition-colors text-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-yellow-300">
+          Compare Solar Partners & Gear
+        </a>
+      </div>
+      <p class="text-[11px] text-slate-500 mt-3">As an affiliate partner, we may earn from qualifying quotes or purchases at no cost to you.</p>
+      <p class="text-[11px] text-slate-500 mt-2">Estimates only. Actual costs, production, and savings vary by site, utility, and installer. The 30% federal residential solar tax credit (Section 25D) expired for systems installed after 2025, so it is not included.</p>
+    </section>
+  </main>
+
+  <footer class="border-t border-slate-900 py-6 text-center text-xs text-slate-500">
+    &copy; 2026 SolarROI Home
+  </footer>
+
+  <script>
+    // ---- Model assumptions (edit here) ----
+    const COST_PER_WATT = 3.0;      // installed $/W
+    const OFFSET        = 0.85;     // share of usage the system is sized to cover
+    const DERATE        = 0.80;     // system losses (inverter, wiring, shading, heat)
+    const DEGRADATION   = 0.005;    // panel output loss per year
+    const RATE_ESCALATOR = 0.025;   // yearly utility price increase
+    const YEARS         = 25;
+
+    const $ = (id) => document.getElementById(id);
+    const usd = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
+
+    const formSection = $('form-section');
+    const results = $('results');
+    const errorEl = $('form-error');
+
+    function readInputs() {
+      const bill = parseFloat($('bill-input').value);
+      const rate = parseFloat($('rate-input').value);
+      const sun = parseFloat($('sunlight-select').value);
+      const incentives = parseFloat($('incentive-input').value) || 0;
+
+      if (!(bill >= 20 && bill <= 2000)) return { error: 'Enter a monthly bill between $20 and $2,000.' };
+      if (!(rate >= 0.05 && rate <= 0.5)) return { error: 'Enter a rate between $0.05 and $0.50 per kWh.' };
+      if (incentives < 0) return { error: 'Incentives cannot be negative.' };
+      return { bill, rate, sun, incentives };
+    }
+
+    function calculate({ bill, rate, sun, incentives }) {
+      const annualKWh = (bill / rate) * 12;
+      const systemKW = (annualKWh * OFFSET) / (sun * 365 * DERATE);
+      const grossCost = systemKW * 1000 * COST_PER_WATT;
+      const netCost = Math.max(grossCost - incentives, 0);
+
+      let cumulative = -netCost;
+      let payback = null;
+      for (let year = 1; year <= YEARS; year++) {
+        const savings = bill * 12 * OFFSET
+          * Math.pow(1 - DEGRADATION, year - 1)
+          * Math.pow(1 + RATE_ESCALATOR, year - 1);
+        if (payback === null && cumulative + savings >= 0) {
+          payback = year - 1 + (-cumulative / savings); // interpolate within the year
+        }
+        cumulative += savings;
+      }
+      return { systemKW, netCost, payback, lifetime: cumulative };
+    }
+
+    $('calc-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const input = readInputs();
+      if (input.error) {
+        errorEl.textContent = input.error;
+        errorEl.classList.remove('hidden');
+        return;
+      }
+      errorEl.classList.add('hidden');
+
+      const { systemKW, netCost, payback, lifetime } = calculate(input);
+      const paybackText = payback === null ? `${YEARS}+ yrs` : `${payback.toFixed(1)} yrs`;
+
+      $('net-cost').textContent = usd.format(netCost);
+      $('payback-years').textContent = paybackText;
+      $('lifetime-savings').textContent = usd.format(lifetime);
+      $('solar-tip').textContent = payback === null
+        ? `Based on your usage, you'd need roughly a ${systemKW.toFixed(1)} kW array. At these inputs it doesn't pay back within ${YEARS} years, so get detailed quotes before committing.`
+        : `Based on your usage, you'd need roughly a ${systemKW.toFixed(1)} kW array covering about ${Math.round(OFFSET * 100)}% of your electricity. It would pay for itself in about ${payback.toFixed(1)} years, assuming ${(RATE_ESCALATOR * 100).toFixed(1)}% yearly rate increases.`;
+
+      formSection.classList.add('hidden');
+      results.classList.remove('hidden');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      $('results-title').focus({ preventScroll: true });
+    });
+
+    $('recalc-btn').addEventListener('click', () => {
+      results.classList.add('hidden');
+      formSection.classList.remove('hidden');
+      $('bill-input').focus();
+    });
+  </script>
+</body>
+</html>
