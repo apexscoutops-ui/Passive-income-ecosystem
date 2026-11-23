@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="Get instant material and labor estimates for home remodeling and repair projects.">
+  <meta name="color-scheme" content="dark">
+  <title>BuildEstimate: Home Renovation Cost Estimator</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <style>
+    :root { box-sizing: border-box; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); color-scheme: dark; }
+    html { scroll-padding-top: env(safe-area-inset-top, 0px); background: #020617; }
+    body { background: #020617; }
+    body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); background: rgba(15, 23, 42, 0.9); z-index: 60; }
+  </style>
+</head>
+<body class="text-slate-100 min-h-screen flex flex-col font-sans selection:bg-amber-500 selection:text-white">
+
+  <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky z-50" style="top: env(safe-area-inset-top, 0px);">
+    <div class="max-w-3xl mx-auto px-4 py-4 flex items-center gap-2">
+      <div class="w-8 h-8 rounded-lg bg-amber-600 flex items-center justify-center text-lg shadow-lg shadow-amber-500/30" aria-hidden="true">🏠</div>
+      <span class="font-bold text-lg tracking-tight">BuildEstimate <span class="text-amber-400">Home</span></span>
+    </div>
+  </header>
+
+  <main class="max-w-3xl mx-auto px-4 py-10 w-full flex-grow">
+
+    <section id="form-card" class="bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-2xl">
+      <h1 class="text-2xl sm:text-3xl font-extrabold mb-3 text-white">Home Renovation Cost Estimator</h1>
+      <p class="text-slate-400 mb-6 text-sm sm:text-base leading-relaxed">
+        Choose a project type and size to see ballpark material, labor, and total costs.
+      </p>
+
+      <form id="calc-form" class="space-y-6" novalidate>
+        <div>
+          <label for="project-type" class="block text-sm font-semibold text-slate-200 mb-2">Project type</label>
+          <select id="project-type" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-amber-500 transition-colors"></select>
+        </div>
+
+        <div>
+          <label for="sqft-input" class="block text-sm font-semibold text-slate-200 mb-2">Project size (sq ft)</label>
+          <input type="number" inputmode="numeric" id="sqft-input" min="10" max="10000" step="1" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-amber-500 transition-colors" aria-describedby="sqft-error">
+          <p id="sqft-error" class="hidden mt-2 text-sm text-red-400" role="alert"></p>
+        </div>
+
+        <button type="submit" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-semibold py-3.5 rounded-xl shadow-lg shadow-amber-600/30 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300">
+          Calculate project budget →
+        </button>
+      </form>
+    </section>
+
+    <section id="results" class="hidden bg-gradient-to-br from-amber-950/80 via-slate-900 to-slate-900 border border-amber-500/30 rounded-2xl p-6 sm:p-8 shadow-2xl" aria-live="polite">
+      <div class="flex justify-between items-start gap-4 mb-2">
+        <h2 id="results-title" tabindex="-1" class="text-2xl font-extrabold text-white outline-none">Estimated budget</h2>
+        <button id="recalc-btn" type="button" class="shrink-0 text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg border border-slate-700 transition-colors">Edit inputs</button>
+      </div>
+      <p id="results-summary" class="text-sm text-slate-400 mb-6"></p>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        <div class="bg-slate-950/60 border border-slate-800 p-4 rounded-xl text-center">
+          <span class="text-xs font-semibold text-amber-400">Materials</span>
+          <p id="material-cost" class="text-2xl font-extrabold text-white mt-1"></p>
+        </div>
+        <div class="bg-slate-950/60 border border-slate-800 p-4 rounded-xl text-center">
+          <span class="text-xs font-semibold text-amber-400">Labor</span>
+          <p id="labor-cost" class="text-2xl font-extrabold text-white mt-1"></p>
+        </div>
+        <div class="bg-slate-950/60 border border-slate-800 p-4 rounded-xl text-center">
+          <span class="text-xs font-semibold text-emerald-400">Total</span>
+          <p id="total-cost" class="text-2xl font-extrabold text-emerald-300 mt-1"></p>
+        </div>
+      </div>
+
+      <div class="bg-slate-950/60 border border-slate-800 rounded-xl p-4 mb-6">
+        <h3 class="font-bold text-white text-sm mb-1">Project tip</h3>
+        <p id="project-tip" class="text-sm text-slate-400 leading-relaxed"></p>
+      </div>
+
+      <div class="bg-slate-950/80 border border-amber-500/40 rounded-xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div>
+          <h3 class="font-bold text-white text-sm sm:text-base">Ready to source materials or hire contractors?</h3>
+          <p class="text-xs sm:text-sm text-slate-400 mt-1">Compare tools, building supplies, and local quotes.</p>
+        </div>
+        <a id="cta-button" href="https://example.com/affiliate-signup" target="_blank" rel="noopener noreferrer sponsored"
+           class="w-full sm:w-auto whitespace-nowrap bg-amber-600 hover:bg-amber-500 text-white text-sm font-bold px-5 py-3 rounded-xl shadow-lg shadow-amber-600/30 transition-colors text-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300">
+          View recommended gear &amp; supplies
+        </a>
+      </div>
+      <p class="text-[11px] text-slate-500 mt-3">As an affiliate partner, we may earn from qualifying purchases at no cost to you.</p>
+      <p class="text-[11px] text-slate-500 mt-1">Estimates use rough national averages and are not a quote. Actual costs vary by region, materials, and site conditions.</p>
+    </section>
+  </main>
+
+  <footer class="border-t border-slate-900 py-6 text-center text-xs text-slate-500">
+    &copy; 2026 BuildEstimate Home
+  </footer>
+
+  <script>
+    // Per-sq-ft rates in USD. `size` is the default project size for that type.
+    const PROJECTS = {
+      bath:     { label: 'Full bathroom remodel',        mat: 125, lab: 150, size: 60,  tip: 'Bathrooms are labor-heavy because of plumbing and tile work. Buying your own fixtures can save 15–20% on material markups.' },
+      kitchen:  { label: 'Kitchen remodel',              mat: 175, lab: 130, size: 150, tip: 'Cabinets and countertops often make up over half of kitchen material costs. Budget a 15% contingency for hidden wiring or drywall issues.' },
+      roof:     { label: 'Roof replacement',             mat: 6,   lab: 5,   size: 1800, tip: 'Roofing costs vary widely with pitch and shingle grade. Make sure your contractor includes proper ridge ventilation.' },
+      flooring: { label: 'Hardwood / LVP flooring',      mat: 5,   lab: 4,   size: 400, tip: 'Let hardwood or LVP acclimate inside the home for at least 48 hours before installation to prevent warping.' },
+      deck:     { label: 'Wood / composite deck',        mat: 25,  lab: 20,  size: 250, tip: 'Composite costs more upfront than pressure-treated wood but can save thousands in staining and upkeep over 15 years.' }
+    };
+    const MIN_SQFT = 10, MAX_SQFT = 10000;
+
+    const $ = (id) => document.getElementById(id);
+    const money = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
+    const els = {
+      formCard: $('form-card'), form: $('calc-form'), type: $('project-type'), sqft: $('sqft-input'),
+      error: $('sqft-error'), results: $('results'), title: $('results-title')
+    };
+
+    // Populate the dropdown and default size
+    els.type.innerHTML = Object.entries(PROJECTS)
+      .map(([key, p]) => `<option value="${key}">${p.label}</option>`).join('');
+    els.sqft.value = PROJECTS[els.type.value].size;
+    els.type.addEventListener('change', () => { els.sqft.value = PROJECTS[els.type.value].size; showError(''); });
+
+    function showError(msg) {
+      els.error.textContent = msg;
+      els.error.classList.toggle('hidden', !msg);
+      els.sqft.setAttribute('aria-invalid', msg ? 'true' : 'false');
+    }
+
+    els.form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const project = PROJECTS[els.type.value];
+      const sqft = Number(els.sqft.value);
+
+      if (!Number.isFinite(sqft) || sqft < MIN_SQFT || sqft > MAX_SQFT) {
+        showError(`Enter a size between ${MIN_SQFT.toLocaleString()} and ${MAX_SQFT.toLocaleString()} sq ft.`);
+        els.sqft.focus();
+        return;
+      }
+      showError('');
+
+      const material = sqft * project.mat;
+      const labor = sqft * project.lab;
+
+      $('material-cost').textContent = money.format(material);
+      $('labor-cost').textContent = money.format(labor);
+      $('total-cost').textContent = money.format(material + labor);
+      $('project-tip').textContent = project.tip;
+      $('results-summary').textContent =
+        `${project.label}, ${sqft.toLocaleString()} sq ft · about ${money.format(project.mat + project.lab)} per sq ft`;
+
+      els.formCard.classList.add('hidden');
+      els.results.classList.remove('hidden');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      els.title.focus({ preventScroll: true });
+    });
+
+    $('recalc-btn').addEventListener('click', () => {
+      els.results.classList.add('hidden');
+      els.formCard.classList.remove('hidden');
+      els.sqft.focus();
+    });
+  </script>
+</body>
+</html>
