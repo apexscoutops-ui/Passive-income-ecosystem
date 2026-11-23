@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark">
+  <meta name="description" content="Estimate what it costs to run common home appliances per day, month, and year based on your electricity rate.">
+  <title>WattCost Home: Appliance Energy Cost Calculator</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-emerald-500 selection:text-white">
+
+  <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50">
+    <div class="max-w-3xl mx-auto px-4 py-4 flex items-center gap-2">
+      <div class="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center text-lg shadow-lg shadow-emerald-500/30" aria-hidden="true">⚡</div>
+      <span class="font-bold text-lg tracking-tight">WattCost <span class="text-emerald-400">Home</span></span>
+    </div>
+  </header>
+
+  <main class="max-w-3xl mx-auto px-4 py-10 w-full flex-grow">
+
+    <section id="calc-section" class="bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-2xl">
+      <h1 class="text-2xl sm:text-3xl font-extrabold mb-3 text-white">Appliance energy cost calculator</h1>
+      <p class="text-slate-400 mb-6 text-sm sm:text-base leading-relaxed">
+        Pick an appliance, enter your electricity rate, and see what it costs to run each day, month, and year.
+      </p>
+
+      <form id="calc-form" class="space-y-6" novalidate>
+        <div>
+          <label for="appliance-select" class="block text-sm font-semibold text-slate-200 mb-2">Appliance</label>
+          <select id="appliance-select" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500 focus-visible:ring-2 focus-visible:ring-emerald-500/40 transition-colors">
+            <option value="heater" data-watts="1500" data-hours="4">Space heater (1,500 W)</option>
+            <option value="window-ac" data-watts="1200" data-hours="6">Window AC unit (1,200 W)</option>
+            <option value="fridge" data-watts="150" data-hours="24">Full-size refrigerator (150 W average)</option>
+            <option value="hvac" data-watts="5000" data-hours="6">Central HVAC system (5,000 W)</option>
+            <option value="dryer" data-watts="3000" data-hours="1">Clothes dryer (3,000 W)</option>
+            <option value="water-heater" data-watts="4500" data-hours="3">Electric water heater (4,500 W, heating time)</option>
+            <option value="tv" data-watts="60" data-hours="5">LED TV and soundbar (60 W)</option>
+          </select>
+          <p class="text-xs text-slate-400 mt-2">Wattages are typical values. Check your appliance's label for exact figures.</p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label for="hours-input" class="block text-sm font-semibold text-slate-200 mb-2">Hours of use per day</label>
+            <input type="number" id="hours-input" value="4" min="0.1" max="24" step="any" inputmode="decimal" aria-describedby="hours-error"
+                   class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500 focus-visible:ring-2 focus-visible:ring-emerald-500/40 transition-colors">
+            <p id="hours-error" class="text-xs text-rose-400 mt-1 min-h-[1rem]"></p>
+          </div>
+          <div>
+            <label for="rate-input" class="block text-sm font-semibold text-slate-200 mb-2">Electricity rate ($ per kWh)</label>
+            <input type="number" id="rate-input" value="0.16" min="0.01" max="1" step="any" inputmode="decimal" aria-describedby="rate-hint rate-error"
+                   class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500 focus-visible:ring-2 focus-visible:ring-emerald-500/40 transition-colors">
+            <p id="rate-hint" class="text-xs text-slate-400 mt-1">Find this on your utility bill.</p>
+            <p id="rate-error" class="text-xs text-rose-400 min-h-[1rem]"></p>
+          </div>
+        </div>
+
+        <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-3.5 rounded-xl shadow-lg shadow-emerald-600/30 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-300">
+          Calculate cost
+        </button>
+      </form>
+    </section>
+
+    <section id="results" class="hidden mt-6 bg-gradient-to-br from-emerald-950/80 via-slate-900 to-slate-900 border border-emerald-500/30 rounded-2xl p-6 sm:p-8 shadow-2xl" aria-live="polite">
+      <div class="flex justify-between items-start gap-4 mb-1">
+        <h2 id="results-title" tabindex="-1" class="text-2xl font-extrabold text-white outline-none">Estimated cost</h2>
+        <button type="button" id="recalc-btn" class="shrink-0 text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-lg border border-slate-700 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald-300">Edit values</button>
+      </div>
+      <p id="results-summary" class="text-sm text-slate-400 mb-6"></p>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        <div class="bg-slate-950/60 border border-slate-800 p-4 rounded-xl text-center">
+          <span class="text-xs font-semibold text-emerald-400">Per day</span>
+          <p id="daily-cost" class="text-2xl font-extrabold text-white mt-1">$0.00</p>
+          <p id="daily-kwh" class="text-xs text-slate-400 mt-1"></p>
+        </div>
+        <div class="bg-slate-950/60 border border-slate-800 p-4 rounded-xl text-center">
+          <span class="text-xs font-semibold text-emerald-400">Per month</span>
+          <p id="monthly-cost" class="text-2xl font-extrabold text-white mt-1">$0.00</p>
+          <p id="monthly-kwh" class="text-xs text-slate-400 mt-1"></p>
+        </div>
+        <div class="bg-slate-950/60 border border-slate-800 p-4 rounded-xl text-center">
+          <span class="text-xs font-semibold text-emerald-400">Per year</span>
+          <p id="yearly-cost" class="text-2xl font-extrabold text-white mt-1">$0.00</p>
+          <p id="yearly-kwh" class="text-xs text-slate-400 mt-1"></p>
+        </div>
+      </div>
+
+      <div class="bg-slate-950/60 border border-slate-800 rounded-xl p-4 mb-6">
+        <h3 class="font-bold text-white text-sm mb-1">Ways to save</h3>
+        <p id="efficiency-tip" class="text-sm text-slate-400 leading-relaxed"></p>
+      </div>
+
+      <div class="bg-slate-950/80 border border-emerald-500/40 rounded-xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div>
+          <h3 class="font-bold text-white text-sm sm:text-base">Want to lower your energy bills?</h3>
+          <p class="text-xs sm:text-sm text-slate-400 mt-1">Browse smart thermostats and energy monitors.</p>
+        </div>
+        <a id="cta-button" href="https://example.com/affiliate-signup" target="_blank" rel="noopener noreferrer sponsored"
+           class="w-full sm:w-auto whitespace-nowrap bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold px-5 py-3 rounded-xl shadow-lg shadow-emerald-600/30 transition-colors text-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-300">
+          View recommended gear
+        </a>
+      </div>
+      <p class="text-xs text-slate-400 mt-3">As an affiliate, we may earn a commission from qualifying purchases at no extra cost to you.</p>
+    </section>
+  </main>
+
+  <footer class="border-t border-slate-900 py-6 text-center text-xs text-slate-400">
+    &copy; 2026 WattCost Home. Estimates only; actual costs vary with your appliance and utility plan.
+  </footer>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+
+    const form = $('calc-form');
+    const select = $('appliance-select');
+    const hoursInput = $('hours-input');
+    const rateInput = $('rate-input');
+    const calcSection = $('calc-section');
+    const results = $('results');
+
+    const money = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+    const kwhFmt = new Intl.NumberFormat('en-US', { maximumFractionDigits: 1 });
+
+    const TIPS = {
+      heater: 'Use the thermostat or a timer, and heat the room you are in rather than the whole house.',
+      'window-ac': 'Clean the filter monthly and set the temperature a few degrees higher. Each degree can trim cooling costs.',
+      fridge: 'Keep the coils clean, check the door seals, and set the fridge near 37°F (3°C).',
+      hvac: 'A programmable or smart thermostat and regular filter changes are the biggest levers here.',
+      dryer: 'Clean the lint filter every load and dry similar fabrics together. A heat pump dryer uses far less energy.',
+      'water-heater': 'Lower the tank setpoint to about 120°F (49°C) and insulate the tank and pipes.',
+      tv: 'Turn off standby power with a smart strip. The cost is small, but the standby draw adds up across devices.'
+    };
+
+    // Default hours per appliance when the selection changes
+    select.addEventListener('change', () => {
+      hoursInput.value = select.selectedOptions[0].dataset.hours;
+      clearErrors();
+    });
+
+    function clearErrors() {
+      $('hours-error').textContent = '';
+      $('rate-error').textContent = '';
+    }
+
+    function validate() {
+      clearErrors();
+      const hours = parseFloat(hoursInput.value);
+      const rate = parseFloat(rateInput.value);
+      let ok = true;
+
+      if (!Number.isFinite(hours) || hours < 0.1 || hours > 24) {
+        $('hours-error').textContent = 'Enter between 0.1 and 24 hours.';
+        ok = false;
+      }
+      if (!Number.isFinite(rate) || rate < 0.01 || rate > 1) {
+        $('rate-error').textContent = 'Enter a rate between $0.01 and $1.00.';
+        ok = false;
+      }
+      if (!ok) {
+        (($('hours-error').textContent ? hoursInput : rateInput)).focus();
+        return null;
+      }
+      return { hours, rate };
+    }
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const input = validate();
+      if (!input) return;
+
+      const option = select.selectedOptions[0];
+      const watts = Number(option.dataset.watts);
+
+      const dailyKwh = (watts * input.hours) / 1000;
+      const yearlyKwh = dailyKwh * 365;
+      const monthlyKwh = yearlyKwh / 12;
+
+      $('daily-cost').textContent = money.format(dailyKwh * input.rate);
+      $('monthly-cost').textContent = money.format(monthlyKwh * input.rate);
+      $('yearly-cost').textContent = money.format(yearlyKwh * input.rate);
+      $('daily-kwh').textContent = `${kwhFmt.format(dailyKwh)} kWh`;
+      $('monthly-kwh').textContent = `${kwhFmt.format(monthlyKwh)} kWh`;
+      $('yearly-kwh').textContent = `${kwhFmt.format(yearlyKwh)} kWh`;
+
+      const name = option.textContent.replace(/\s*\(.*\)/, '');
+      $('results-summary').textContent =
+        `${name}, ${input.hours} hours a day at ${money.format(input.rate)} per kWh.`;
+      $('efficiency-tip').textContent = TIPS[option.value];
+
+      calcSection.classList.add('hidden');
+      results.classList.remove('hidden');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      $('results-title').focus({ preventScroll: true });
+    });
+
+    $('recalc-btn').addEventListener('click', () => {
+      results.classList.add('hidden');
+      calcSection.classList.remove('hidden');
+      select.focus();
+    });
+  </script>
+</body>
+</html>
