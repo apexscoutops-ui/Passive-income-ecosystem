@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark">
+  <meta name="description" content="Estimate home EV charger installation cost (panel upgrade, wiring, permit, labor), charging time, monthly electricity cost, and savings over gas.">
+  <title>Home EV Charger Installation &amp; Charging Cost Calculator | EVCharge Home</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%9A%A1%3C/text%3E%3C/svg%3E">
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-blue-500 selection:text-white">
+
+  <header class="border-b border-slate-800 bg-slate-900/60 backdrop-blur sticky top-0 z-50">
+    <div class="max-w-3xl mx-auto px-4 py-4 flex items-center gap-2">
+      <div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-lg shadow-lg shadow-blue-500/30" aria-hidden="true">⚡</div>
+      <span class="font-bold text-lg tracking-tight">EVCharge <span class="text-blue-400">Home</span></span>
+    </div>
+  </header>
+
+  <main class="max-w-3xl mx-auto px-4 py-10 w-full flex-grow">
+
+    <section id="form-section" class="bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-2xl">
+      <h1 class="text-2xl sm:text-3xl font-extrabold mb-3 text-white">Home EV charger installation &amp; charging cost calculator</h1>
+      <p class="text-slate-400 mb-6 text-sm sm:text-base leading-relaxed">
+        Enter your driving, charger, and home electrical setup to estimate installation cost, charging time, monthly cost, and savings over a gas car.
+      </p>
+
+      <form id="calc-form" class="space-y-6" novalidate>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label for="commute" class="block text-sm font-semibold text-slate-200 mb-2">Daily driving (miles)</label>
+            <input type="number" id="commute" value="40" min="1" max="500" step="1" inputmode="numeric" class="field">
+          </div>
+          <div>
+            <label for="battery" class="block text-sm font-semibold text-slate-200 mb-2">Battery capacity</label>
+            <select id="battery" class="field">
+              <option value="60">Standard range, ~60 kWh (Model 3, Leaf)</option>
+              <option value="75" selected>Long range, ~75 kWh (Model Y, Ioniq 5)</option>
+              <option value="100">Large pack, ~100 kWh (trucks, large SUVs)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label for="charger" class="block text-sm font-semibold text-slate-200 mb-2">Home charger</label>
+            <select id="charger" class="field">
+              <option value="1.4">Level 1, standard outlet (1.4 kW, 120V)</option>
+              <option value="7.7">Level 2, 32 A (7.7 kW, 240V)</option>
+              <option value="11.5" selected>Level 2, 48 A (11.5 kW, hardwired)</option>
+            </select>
+            <span class="text-[11px] text-slate-500 mt-1 block">Your car's onboard charger may cap the speed below this.</span>
+          </div>
+          <div>
+            <label for="rate" class="block text-sm font-semibold text-slate-200 mb-2">Electricity rate ($ per kWh)</label>
+            <input type="number" id="rate" value="0.16" min="0.05" max="1" step="0.01" inputmode="decimal" class="field">
+            <span class="text-[11px] text-slate-500 mt-1 block">The U.S. average is about $0.16/kWh. Check your utility bill.</span>
+          </div>
+        </div>
+
+        <fieldset class="rounded-xl border border-slate-800 bg-slate-950/40 px-4 pb-4 pt-2">
+          <legend class="px-2 text-sm font-semibold text-slate-200">Installation details</legend>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-2">
+            <div>
+              <label for="panel" class="block text-xs font-semibold text-slate-300 mb-2">Electrical panel</label>
+              <select id="panel" class="field">
+                <option value="none" selected>Has spare capacity</option>
+                <option value="sub">Needs a subpanel</option>
+                <option value="upgrade">Needs a full panel upgrade</option>
+              </select>
+            </div>
+            <div>
+              <label for="run" class="block text-xs font-semibold text-slate-300 mb-2">Panel to charger (feet)</label>
+              <input type="number" id="run" value="25" min="5" max="150" step="1" inputmode="numeric" class="field">
+            </div>
+            <div>
+              <label for="route" class="block text-xs font-semibold text-slate-300 mb-2">Wire route</label>
+              <select id="route" class="field">
+                <option value="inside" selected>Inside, attached garage</option>
+                <option value="outside">Along an exterior wall</option>
+                <option value="trench">Detached garage or trenching</option>
+              </select>
+            </div>
+          </div>
+          <span class="text-[11px] text-slate-500 mt-2 block">Not sure about your panel? An electrician's load calculation will tell you. Level 1 charging usually needs no panel work.</span>
+        </fieldset>
+
+        <details class="group rounded-xl border border-slate-800 bg-slate-950/40 px-4 py-3">
+          <summary class="cursor-pointer text-sm font-semibold text-slate-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-300 rounded">Comparison assumptions</summary>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
+            <div>
+              <label for="mpg" class="block text-xs font-semibold text-slate-300 mb-2">Gas car fuel economy (MPG)</label>
+              <input type="number" id="mpg" value="25" min="8" max="80" step="1" inputmode="numeric" class="field">
+            </div>
+            <div>
+              <label for="gas" class="block text-xs font-semibold text-slate-300 mb-2">Gas price ($ per gallon)</label>
+              <input type="number" id="gas" value="3.50" min="1" max="10" step="0.05" inputmode="decimal" class="field">
+            </div>
+            <div>
+              <label for="eff" class="block text-xs font-semibold text-slate-300 mb-2">EV efficiency (miles per kWh)</label>
+              <input type="number" id="eff" value="3.5" min="1.5" max="6" step="0.1" inputmode="decimal" class="field">
+            </div>
+          </div>
+        </details>
+
+        <p id="form-error" class="hidden text-sm text-red-400" role="alert"></p>
+
+        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3.5 rounded-xl shadow-lg shadow-blue-600/30 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-300">
+          Calculate costs and savings
+        </button>
+      </form>
+    </section>
+
+    <section id="results" class="hidden mt-6 bg-gradient-to-br from-blue-950/80 via-slate-900 to-slate-900 border border-blue-500/30 rounded-2xl p-6 sm:p-8 shadow-2xl" aria-live="polite">
+      <div class="flex justify-between items-start gap-4 mb-6">
+        <h2 id="results-title" tabindex="-1" class="text-2xl font-extrabold text-white outline-none">Your installation and charging estimate</h2>
+        <button id="edit-btn" type="button" class="shrink-0 text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg border border-slate-700 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-300">Edit inputs</button>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        <div class="bg-slate-950/60 border border-slate-800 p-4 rounded-xl text-center">
+          <span class="text-xs font-semibold text-blue-400">Monthly electricity cost</span>
+          <p id="monthly-cost" class="text-2xl font-extrabold text-white mt-1">–</p>
+        </div>
+        <div class="bg-slate-950/60 border border-slate-800 p-4 rounded-xl text-center">
+          <span class="text-xs font-semibold text-blue-400">Full charge time (0–100%)</span>
+          <p id="charge-time" class="text-2xl font-extrabold text-blue-300 mt-1">–</p>
+        </div>
+        <div class="bg-slate-950/60 border border-slate-800 p-4 rounded-xl text-center">
+          <span id="savings-label" class="text-xs font-semibold text-emerald-400">Yearly savings vs. gas</span>
+          <p id="annual-savings" class="text-2xl font-extrabold text-emerald-300 mt-1">–</p>
+        </div>
+      </div>
+
+      <div class="bg-slate-950/60 border border-slate-800 rounded-xl p-4 mb-6">
+        <div class="flex justify-between items-baseline gap-4 mb-3">
+          <h3 class="font-bold text-white text-sm">Estimated installation cost</h3>
+          <p id="install-total" class="text-lg font-extrabold text-white">–</p>
+        </div>
+        <dl id="install-lines" class="space-y-1.5 text-sm"></dl>
+        <p id="install-note" class="text-xs text-slate-500 mt-3 leading-relaxed"></p>
+      </div>
+
+      <div class="bg-slate-950/60 border border-slate-800 rounded-xl p-4 mb-6">
+        <h3 class="font-bold text-white text-sm mb-1">What this means for you</h3>
+        <p id="ev-tip" class="text-sm text-slate-400 leading-relaxed"></p>
+      </div>
+
+      <div class="bg-slate-950/80 border border-blue-500/40 rounded-xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div>
+          <h3 class="font-bold text-white text-sm sm:text-base">Ready to install a Level 2 charger?</h3>
+          <p class="text-xs sm:text-sm text-slate-400 mt-1">Compare Wi-Fi enabled home charging stations and installation accessories.</p>
+        </div>
+        <!-- TODO: replace with your real affiliate URL -->
+        <a id="cta-button" href="https://example.com/affiliate-signup" target="_blank" rel="noopener noreferrer sponsored"
+           class="w-full sm:w-auto whitespace-nowrap bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold px-5 py-3 rounded-xl shadow-lg shadow-blue-600/30 transition-colors text-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-300">
+          See recommended chargers
+        </a>
+      </div>
+      <p class="text-[11px] text-slate-500 mt-3">We may earn a commission on qualifying purchases at no extra cost to you. Figures are estimates based on the inputs and assumptions above.</p>
+    </section>
+  </main>
+
+  <footer class="border-t border-slate-900 py-6 text-center text-xs text-slate-500">
+    &copy; <span id="year">2026</span> EVCharge Home
+  </footer>
+
+  <style type="text/tailwindcss">
+    @layer components {
+      .field { @apply w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white transition-colors focus:outline-none focus:border-blue-500 focus-visible:ring-2 focus-visible:ring-blue-500/40; }
+      .field[aria-invalid="true"] { @apply border-red-500; }
+    }
+  </style>
+
+  <script>
+    (() => {
+      const $ = (id) => document.getElementById(id);
+      const money = (n, digits = 0) =>
+        n.toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: digits, maximumFractionDigits: digits });
+
+      const CHARGING_EFFICIENCY = 0.88;   // share of grid energy that reaches the battery
+      const DAYS_PER_MONTH = 365 / 12;
+
+      const fields = {
+        run:     { el: $('run'),     label: 'Panel to charger distance' },
+        commute: { el: $('commute'), label: 'Daily driving' },
+        rate:    { el: $('rate'),    label: 'Electricity rate' },
+        mpg:     { el: $('mpg'),     label: 'Gas car MPG' },
+        gas:     { el: $('gas'),     label: 'Gas price' },
+        eff:     { el: $('eff'),     label: 'EV efficiency' },
+      };
+
+      function readInputs() {
+        const values = {};
+        const errors = [];
+        for (const [key, { el, label }] of Object.entries(fields)) {
+          const n = parseFloat(el.value);
+          const min = parseFloat(el.min), max = parseFloat(el.max);
+          const bad = !Number.isFinite(n) || n < min || n > max;
+          el.setAttribute('aria-invalid', bad ? 'true' : 'false');
+          if (bad) errors.push(`${label} must be between ${min} and ${max}.`);
+          values[key] = n;
+        }
+        values.batteryKWh = parseFloat($('battery').value);
+        values.chargerKW = parseFloat($('charger').value);
+        values.panel = $('panel').value;
+        values.route = $('route').value;
+        return { values, errors };
+      }
+
+      function calculate(v) {
+        const dailyBatteryKWh = v.commute / v.eff;                     // energy the car uses
+        const dailyGridKWh = dailyBatteryKWh / CHARGING_EFFICIENCY;    // energy you pay for
+        const monthlyCost = dailyGridKWh * DAYS_PER_MONTH * v.rate;
+        const monthlyGasCost = (v.commute * DAYS_PER_MONTH / v.mpg) * v.gas;
+        return {
+          dailyGridKWh,
+          monthlyCost,
+          annualSavings: (monthlyGasCost - monthlyCost) * 12,
+          fullChargeHours: v.batteryKWh / CHARGING_EFFICIENCY / v.chargerKW,
+          dailyChargeHours: dailyGridKWh / v.chargerKW,
+          milesPerHour: v.chargerKW * CHARGING_EFFICIENCY * v.eff,
+        };
+      }
+
+      // Typical U.S. installed-cost ranges in USD [low, high]. Local prices vary widely.
+      const COST = {
+        hardware:  { l2: [400, 700], l2Heavy: [550, 900] },
+        labor:     [450, 900],
+        perFoot:   { l2: [6, 12], l2Heavy: [8, 16] },   // wire + conduit
+        outside:   [150, 400],
+        trenchFt:  [25, 50],
+        permit:    [75, 400],
+        panel:     { none: [0, 0], sub: [800, 2000], upgrade: [2000, 4500] },
+        outlet:    [0, 250],
+      };
+
+      function calcInstall(v) {
+        if (v.chargerKW <= 1.4) {
+          return { lines: [{ label: 'Dedicated 120V outlet, if needed', range: COST.outlet }], level1: true, ...sum([COST.outlet]) };
+        }
+        const heavy = v.chargerKW >= 11;
+        const tier = heavy ? 'l2Heavy' : 'l2';
+        const scale = (r, n) => [r[0] * n, r[1] * n];
+        const lines = [
+          { label: 'Charger hardware', range: COST.hardware[tier] },
+          { label: 'Electrician labor', range: COST.labor },
+          { label: `Wire and conduit (${v.run} ft)`, range: scale(COST.perFoot[tier], v.run) },
+          { label: 'Permit and inspection', range: COST.permit },
+        ];
+        if (v.route === 'outside') lines.push({ label: 'Exterior wall routing', range: COST.outside });
+        if (v.route === 'trench') lines.push({ label: `Trenching (${v.run} ft)`, range: scale(COST.trenchFt, v.run) });
+        if (v.panel === 'sub') lines.push({ label: 'Subpanel', range: COST.panel.sub });
+        if (v.panel === 'upgrade') lines.push({ label: 'Panel upgrade', range: COST.panel.upgrade });
+        return { lines, level1: false, ...sum(lines.map((l) => l.range)) };
+      }
+
+      function sum(ranges) {
+        return { low: ranges.reduce((a, r) => a + r[0], 0), high: ranges.reduce((a, r) => a + r[1], 0) };
+      }
+
+      const roundTo = (n, step = 50) => Math.round(n / step) * step;
+
+      function renderInstall(v, annualSavings) {
+        const r = calcInstall(v);
+        $('install-total').textContent = r.high === 0 ? '$0' : `${money(roundTo(r.low))} – ${money(roundTo(r.high))}`;
+
+        const list = $('install-lines');
+        list.replaceChildren();
+        for (const line of r.lines) {
+          const row = document.createElement('div');
+          row.className = 'flex justify-between gap-4';
+          const dt = document.createElement('dt');
+          dt.className = 'text-slate-400';
+          dt.textContent = line.label;
+          const dd = document.createElement('dd');
+          dd.className = 'text-slate-200 whitespace-nowrap';
+          dd.textContent = line.range[1] === 0 ? 'Included' : `${money(roundTo(line.range[0], 10))} – ${money(roundTo(line.range[1], 10))}`;
+          row.append(dt, dd);
+          list.append(row);
+        }
+
+        let note = r.level1
+          ? 'Level 1 charging plugs into a standard outlet, so there is usually little to install. '
+          : 'Ranges are typical U.S. installed costs. Get quotes from licensed electricians, and check your utility and state for charger rebates. ';
+        const mid = (r.low + r.high) / 2;
+        if (!r.level1 && annualSavings > 0 && mid > 0) {
+          const months = Math.max(1, Math.round((mid / annualSavings) * 12));
+          note += `The midpoint equals about ${months} ${months === 1 ? 'month' : 'months'} of your estimated fuel savings.`;
+        }
+        $('install-note').textContent = note;
+      }
+
+      const formatHours = (h) => (h < 1 ? `${Math.round(h * 60)} min` : `${h.toFixed(1)} hrs`);
+
+      function render(v, r) {
+        $('monthly-cost').textContent = money(r.monthlyCost, 2);
+        $('charge-time').textContent = formatHours(r.fullChargeHours);
+
+        const saving = r.annualSavings >= 0;
+        $('savings-label').textContent = saving ? 'Yearly savings vs. gas' : 'Yearly extra cost vs. gas';
+        $('annual-savings').textContent = money(Math.abs(r.annualSavings));
+
+        let tip = `Driving ${v.commute} miles a day uses about ${r.dailyGridKWh.toFixed(1)} kWh from the wall, adding roughly ${money(r.monthlyCost, 2)} to your monthly electric bill. `;
+        tip += saving
+          ? `Compared with a ${v.mpg} MPG gas car at ${money(v.gas, 2)} per gallon, that saves about ${money(r.annualSavings)} a year. `
+          : `At these prices, a ${v.mpg} MPG gas car would cost about ${money(-r.annualSavings)} a year less to run. `;
+        tip += `Your charger adds roughly ${Math.round(r.milesPerHour)} miles of range per hour, so a day of driving takes about ${formatHours(r.dailyChargeHours)} to replace. `;
+        tip += v.chargerKW <= 1.4
+          ? 'That is slow for a daily commute. A Level 2 charger is usually worth the upgrade.'
+          : 'That fits comfortably into an overnight charge.';
+        $('ev-tip').textContent = tip;
+        renderInstall(v, r.annualSavings);
+      }
+
+      function show(section) {
+        const showResults = section === 'results';
+        $('results').classList.toggle('hidden', !showResults);
+        $('form-section').classList.toggle('hidden', showResults);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      $('calc-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const { values, errors } = readInputs();
+        const errorEl = $('form-error');
+        if (errors.length) {
+          errorEl.textContent = errors.join(' ');
+          errorEl.classList.remove('hidden');
+          return;
+        }
+        errorEl.classList.add('hidden');
+        render(values, calculate(values));
+        show('results');
+        $('results-title').focus({ preventScroll: true });
+      });
+
+      $('edit-btn').addEventListener('click', () => {
+        show('form');
+        $('commute').focus({ preventScroll: true });
+      });
+
+      $('year').textContent = new Date().getFullYear();
+    })();
+  </script>
+</body>
+</html>
