@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Pick the appliances you need during a power outage to find the right generator size and estimate your daily fuel use and cost.">
+  <title>Home Generator Sizing & Fuel Cost Calculator</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-orange-500 selection:text-white">
+
+  <header class="border-b border-slate-800 bg-slate-900/60 backdrop-blur sticky top-0 z-50">
+    <div class="max-w-3xl mx-auto px-4 py-4 flex items-center gap-2">
+      <div class="w-8 h-8 rounded-lg bg-orange-600 flex items-center justify-center text-lg shadow-lg shadow-orange-500/30" aria-hidden="true">🔌</div>
+      <span class="font-bold text-lg tracking-tight">GenCalc <span class="text-orange-400">Home</span></span>
+    </div>
+  </header>
+
+  <main class="max-w-3xl mx-auto px-4 py-10 w-full flex-grow">
+
+    <!-- Calculator form -->
+    <section id="form-section" class="bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-2xl">
+      <h1 class="text-2xl sm:text-3xl font-extrabold mb-3 text-white">Home Generator Sizing & Fuel Cost Calculator</h1>
+      <p class="text-slate-400 mb-6 text-sm sm:text-base leading-relaxed">
+        Choose what you need to power during an outage. You'll get the generator size to look for and a rough daily fuel cost.
+      </p>
+
+      <form id="calc-form" class="space-y-6" novalidate>
+        <fieldset class="space-y-3">
+          <legend class="block text-sm font-semibold text-slate-200 mb-2">Appliances to power</legend>
+          <div id="appliance-list" class="space-y-3"></div>
+          <p id="form-error" class="hidden text-sm text-red-400" role="alert">Select at least one appliance.</p>
+        </fieldset>
+
+        <fieldset class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <legend class="sr-only">Fuel estimate settings</legend>
+          <div>
+            <label for="hours" class="block text-sm font-semibold text-slate-200 mb-1.5">Hours of runtime per day</label>
+            <input id="hours" type="number" min="1" max="24" step="1" value="12" inputmode="numeric"
+                   class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-orange-400">
+          </div>
+          <div>
+            <label for="price" class="block text-sm font-semibold text-slate-200 mb-1.5">Gasoline price per gallon ($)</label>
+            <input id="price" type="number" min="0.5" max="20" step="0.01" value="3.50" inputmode="decimal"
+                   class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-orange-400">
+          </div>
+        </fieldset>
+
+        <button type="submit" class="w-full bg-orange-600 hover:bg-orange-500 text-white font-semibold py-3.5 rounded-xl shadow-lg shadow-orange-600/30 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-300">
+          Calculate generator size and fuel cost
+        </button>
+      </form>
+    </section>
+
+    <!-- Results -->
+    <section id="results" hidden class="mt-6 bg-gradient-to-br from-orange-950/80 via-slate-900 to-slate-900 border border-orange-500/30 rounded-2xl p-6 sm:p-8 shadow-2xl" aria-live="polite">
+      <div class="flex justify-between items-start gap-4 mb-6">
+        <h2 id="results-title" tabindex="-1" class="text-2xl font-extrabold text-white outline-none">Your generator size</h2>
+        <button id="recalc-btn" type="button" class="shrink-0 text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg border border-slate-700 transition-colors">Change appliances</button>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+        <div class="bg-slate-950/60 border border-slate-800 p-4 rounded-xl text-center">
+          <span class="text-xs font-semibold text-orange-400">Running watts</span>
+          <p id="total-running" class="text-2xl font-extrabold text-white mt-1"></p>
+        </div>
+        <div class="bg-slate-950/60 border border-slate-800 p-4 rounded-xl text-center">
+          <span class="text-xs font-semibold text-orange-400">Peak starting watts</span>
+          <p id="total-surge" class="text-2xl font-extrabold text-orange-300 mt-1"></p>
+        </div>
+        <div class="bg-slate-950/60 border border-slate-800 p-4 rounded-xl text-center">
+          <span class="text-xs font-semibold text-emerald-400">Recommended size</span>
+          <p id="rec-generator" class="text-xl font-extrabold text-emerald-300 mt-1"></p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+        <div class="bg-slate-950/60 border border-slate-800 p-4 rounded-xl text-center">
+          <span class="text-xs font-semibold text-slate-300">Estimated fuel per day</span>
+          <p id="fuel-gal" class="text-2xl font-extrabold text-white mt-1"></p>
+        </div>
+        <div class="bg-slate-950/60 border border-slate-800 p-4 rounded-xl text-center">
+          <span class="text-xs font-semibold text-slate-300">Estimated cost per day</span>
+          <p id="fuel-cost" class="text-2xl font-extrabold text-white mt-1"></p>
+        </div>
+      </div>
+
+      <div class="bg-slate-950/60 border border-slate-800 rounded-xl p-4 mb-4">
+        <h3 class="font-bold text-white text-sm mb-1">Before you buy</h3>
+        <p id="generator-tip" class="text-sm text-slate-400 leading-relaxed"></p>
+      </div>
+
+      <div class="bg-amber-950/40 border border-amber-700/50 rounded-xl p-4 mb-6">
+        <h3 class="font-bold text-amber-300 text-sm mb-1">Carbon monoxide safety</h3>
+        <p class="text-sm text-slate-300 leading-relaxed">
+          Run a generator outdoors only, well away from doors, windows, and vents. Never run it in a garage, even with the door open. Have a licensed electrician install the transfer switch or interlock.
+        </p>
+      </div>
+
+      <div class="bg-slate-950/80 border border-orange-500/40 rounded-xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div>
+          <h3 class="font-bold text-white text-sm sm:text-base">Ready to choose a generator?</h3>
+          <p class="text-xs sm:text-sm text-slate-400 mt-1">Compare dual-fuel portable generators, inverter units, and transfer switches.</p>
+        </div>
+        <a id="cta-button" href="https://example.com/affiliate-signup" target="_blank" rel="noopener noreferrer sponsored"
+           class="w-full sm:w-auto whitespace-nowrap bg-orange-600 hover:bg-orange-500 text-white text-sm font-bold px-5 py-3 rounded-xl shadow-lg shadow-orange-600/30 transition-colors text-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-300">
+          See recommended generators
+        </a>
+      </div>
+      <p class="text-[11px] text-slate-500 mt-3">As an affiliate partner, we may earn from qualifying purchases at no cost to you.</p>
+      <p class="text-[11px] text-slate-500 mt-1">Estimates only. Check your appliances' nameplate ratings and fuel use varies by generator and load.</p>
+    </section>
+  </main>
+
+  <footer class="border-t border-slate-900 py-6 text-center text-xs text-slate-500">
+    &copy; 2026 GenCalc Home
+  </footer>
+
+  <script>
+    // ---- Settings you may want to edit ----
+    const AFFILIATE_URL = 'https://example.com/affiliate-signup';
+    const GAL_PER_KWH = 0.12; // rough gasoline burn at moderate load
+    const SIZES = [
+      { watts: 2200,  label: '2,200W Inverter Generator' },
+      { watts: 3500,  label: '3,500W Inverter Generator' },
+      { watts: 4500,  label: '4,500W Inverter Generator' },
+      { watts: 7500,  label: '7,500W Portable Generator' },
+      { watts: 9500,  label: '9,500W Dual-Fuel Generator' },
+      { watts: 12000, label: '12,000W+ Standby Unit' }
+    ];
+    const APPLIANCES = [
+      { id: 'fridge',    name: 'Refrigerator / Freezer',            note: 'Cycles on and off (~700W running, 2,200W starting)',   running: 700,  surge: 2200, on: true },
+      { id: 'sump',      name: 'Sump Pump (1/2 HP)',                note: 'Prevents flooding (~1,000W running, 2,000W starting)', running: 1000, surge: 2000, on: true },
+      { id: 'lights',    name: 'LED Lights & Wi-Fi Router',         note: 'Basic lighting and internet (~300W)',                  running: 300,  surge: 300,  on: true },
+      { id: 'well',      name: 'Well Pump / Water Pressure System', note: 'Heavy motor (~1,500W running, 4,000W starting)',       running: 1500, surge: 4000, on: false },
+      { id: 'windowac',  name: 'Window AC Unit',                    note: 'Cooling (~1,200W running, 2,400W starting)',           running: 1200, surge: 2400, on: false },
+      { id: 'heater',    name: 'Space Heater',                      note: 'Heating (~1,500W, no startup surge)',                  running: 1500, surge: 1500, on: false },
+      { id: 'microwave', name: 'Microwave / Coffee Maker',          note: 'Kitchen appliances (~1,500W)',                         running: 1500, surge: 1500, on: false }
+    ];
+
+    const fmt = n => n.toLocaleString('en-US');
+    const $ = id => document.getElementById(id);
+
+    // Build appliance list
+    $('appliance-list').innerHTML = APPLIANCES.map(a => `
+      <label class="flex items-center justify-between gap-3 p-3.5 bg-slate-950 border border-slate-800 rounded-xl cursor-pointer hover:border-orange-500 transition-colors">
+        <div class="flex items-center gap-3">
+          <input type="checkbox" name="appliance" value="${a.id}" ${a.on ? 'checked' : ''} class="w-4 h-4 accent-orange-500 rounded">
+          <div>
+            <span class="font-bold text-white block text-sm">${a.name}</span>
+            <span class="text-xs text-slate-400">${a.note}</span>
+          </div>
+        </div>
+        <span class="text-xs font-mono text-orange-400 bg-orange-950/50 px-2.5 py-1 rounded border border-orange-900">${fmt(a.running)}W</span>
+      </label>`).join('');
+
+    $('cta-button').href = AFFILIATE_URL;
+
+    $('calc-form').addEventListener('submit', e => {
+      e.preventDefault();
+
+      const selected = [...document.querySelectorAll('input[name="appliance"]:checked')]
+        .map(cb => APPLIANCES.find(a => a.id === cb.value));
+
+      $('form-error').classList.toggle('hidden', selected.length > 0);
+      if (!selected.length) return;
+
+      const hours = Math.min(24, Math.max(1, parseFloat($('hours').value) || 12));
+      const price = Math.max(0, parseFloat($('price').value) || 0);
+
+      // Running load, plus the largest single startup surge on top
+      const totalRunning = selected.reduce((sum, a) => sum + a.running, 0);
+      const maxStartExtra = Math.max(...selected.map(a => a.surge - a.running));
+      const totalSurge = totalRunning + maxStartExtra;
+
+      // Size for peak starting watts or running load + 25% headroom, whichever is higher
+      const target = Math.max(totalRunning * 1.25, totalSurge);
+      const size = SIZES.find(s => s.watts >= target) || SIZES[SIZES.length - 1];
+
+      // Fuel estimate: average kWh per day x gallons per kWh
+      const gallons = (totalRunning / 1000) * hours * GAL_PER_KWH;
+      const cost = gallons * price;
+
+      $('total-running').textContent = `${fmt(totalRunning)} W`;
+      $('total-surge').textContent = `${fmt(totalSurge)} W`;
+      $('rec-generator').textContent = size.label;
+      $('fuel-gal').textContent = `${gallons.toFixed(1)} gal`;
+      $('fuel-cost').textContent = `$${cost.toFixed(2)}`;
+
+      let tip = `Your appliances draw ${fmt(totalRunning)}W continuously and up to ${fmt(totalSurge)}W when the largest motor starts. A ${size.label} covers that with room to spare. Use a manual transfer switch or interlock so you can power these circuits safely without backfeeding the grid.`;
+      if (target > SIZES[SIZES.length - 1].watts) {
+        tip = `Your load is larger than a typical portable generator can handle. Consider a home standby generator sized by an electrician, or remove a few high-draw appliances.`;
+      }
+      $('generator-tip').textContent = tip;
+
+      $('form-section').hidden = true;
+      $('results').hidden = false;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      $('results-title').focus({ preventScroll: true });
+    });
+
+    $('recalc-btn').addEventListener('click', () => {
+      $('results').hidden = true;
+      $('form-section').hidden = false;
+    });
+  </script>
+</body>
+</html>
