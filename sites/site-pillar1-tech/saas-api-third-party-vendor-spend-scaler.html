@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Estimate how your third-party SaaS and API vendor bills scale with users, AI usage, and email volume.">
+  <title>VendScale: SaaS Vendor & API Spend Scaler</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-purple-500 selection:text-white">
+
+  <header class="border-b border-slate-800 bg-slate-900/60 backdrop-blur sticky top-0 z-50">
+    <div class="max-w-3xl mx-auto px-4 py-4 flex justify-between items-center">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-lg bg-purple-600 flex items-center justify-center text-lg shadow-lg shadow-purple-500/30" aria-hidden="true">🧩</div>
+        <span class="font-bold text-lg tracking-tight">VendScale <span class="text-purple-400">Tech</span></span>
+      </div>
+      <div class="hidden sm:block text-xs text-slate-400 bg-slate-800/80 px-3 py-1 rounded-full border border-slate-700">
+        Pillar 1: Tech & SaaS Vendor Stack
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-3xl mx-auto px-4 py-10 w-full flex-grow">
+
+    <!-- Input form -->
+    <section id="form-section" class="bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-2xl">
+      <h1 class="text-2xl sm:text-3xl font-extrabold mb-3 text-white">SaaS Vendor & API Spend Scaler</h1>
+      <p class="text-slate-400 mb-6 text-sm sm:text-base leading-relaxed">
+        Enter your expected usage to estimate how your third-party API and SaaS vendor bills will scale.
+      </p>
+
+      <form id="calc-form" class="space-y-6" novalidate>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label for="mau-input" class="block text-sm font-semibold text-slate-200 mb-2">Monthly active users (MAU)</label>
+            <input type="number" inputmode="numeric" id="mau-input" value="15000" min="0" max="10000000" step="500"
+                   class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-purple-500 focus-visible:ring-2 focus-visible:ring-purple-500/50 transition-colors">
+          </div>
+          <div>
+            <label for="ai-tokens" class="block text-sm font-semibold text-slate-200 mb-2">AI / LLM tokens per month (millions)</label>
+            <input type="number" inputmode="decimal" id="ai-tokens" value="25" min="0" max="1000" step="1"
+                   class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-purple-500 focus-visible:ring-2 focus-visible:ring-purple-500/50 transition-colors">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label for="emails-input" class="block text-sm font-semibold text-slate-200 mb-2">Transactional emails per month</label>
+            <input type="number" inputmode="numeric" id="emails-input" value="50000" min="0" max="5000000" step="1000"
+                   class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-purple-500 focus-visible:ring-2 focus-visible:ring-purple-500/50 transition-colors">
+          </div>
+          <div>
+            <label for="mrr-input" class="block text-sm font-semibold text-slate-200 mb-2">Monthly subscription revenue ($)</label>
+            <input type="number" inputmode="decimal" id="mrr-input" value="10000" min="0" max="500000" step="500"
+                   class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-purple-500 focus-visible:ring-2 focus-visible:ring-purple-500/50 transition-colors">
+          </div>
+        </div>
+
+        <button type="submit"
+                class="w-full bg-purple-600 hover:bg-purple-500 text-white font-semibold py-3.5 rounded-xl shadow-lg shadow-purple-600/30 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-300">
+          Calculate vendor spend
+        </button>
+      </form>
+    </section>
+
+    <!-- Results -->
+    <section id="results" class="hidden mt-6 bg-gradient-to-br from-purple-950/80 via-slate-900 to-slate-900 border border-purple-500/30 rounded-2xl p-6 sm:p-8 shadow-2xl">
+      <div class="flex justify-between items-start gap-4 mb-6">
+        <h2 id="results-title" tabindex="-1" class="text-2xl font-extrabold text-white outline-none">Vendor stack spend breakdown</h2>
+        <button id="recalc-btn" type="button"
+                class="shrink-0 text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg border border-slate-700 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-purple-300">
+          Edit inputs
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6" aria-live="polite">
+        <div class="bg-slate-950/60 border border-slate-800 p-4 rounded-xl text-center">
+          <span class="text-xs font-semibold text-purple-400">Total monthly spend</span>
+          <p id="total-vendor-spend" class="text-2xl font-extrabold text-white mt-1">$0.00</p>
+        </div>
+        <div class="bg-slate-950/60 border border-slate-800 p-4 rounded-xl text-center">
+          <span class="text-xs font-semibold text-purple-400">Spend as % of revenue</span>
+          <p id="spend-ratio" class="text-2xl font-extrabold text-purple-300 mt-1">0.0%</p>
+        </div>
+        <div class="bg-slate-950/60 border border-slate-800 p-4 rounded-xl text-center">
+          <span class="text-xs font-semibold text-emerald-400">Projected annual spend</span>
+          <p id="annual-spend" class="text-2xl font-extrabold text-emerald-300 mt-1">$0.00</p>
+        </div>
+      </div>
+
+      <div class="bg-slate-950/60 border border-slate-800 rounded-xl p-4 mb-6">
+        <h3 class="font-bold text-white text-sm mb-3">Cost by category</h3>
+        <ul id="breakdown" class="space-y-2 text-sm"></ul>
+      </div>
+
+      <div class="bg-slate-950/60 border border-slate-800 rounded-xl p-4 mb-6">
+        <h3 class="font-bold text-white text-sm mb-1">Optimization insight</h3>
+        <p id="vendor-tip" class="text-sm text-slate-400 leading-relaxed"></p>
+      </div>
+
+      <div class="bg-slate-950/80 border border-purple-500/40 rounded-xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div>
+          <h3 class="font-bold text-white text-sm sm:text-base">Want to cut software costs and claim startup perks?</h3>
+          <p class="text-xs sm:text-sm text-slate-400 mt-1">Compare developer-friendly billing providers, infrastructure credits, and alternative APIs.</p>
+        </div>
+        <a id="cta-button" href="https://example.com/affiliate-signup" target="_blank" rel="noopener noreferrer sponsored"
+           class="w-full sm:w-auto whitespace-nowrap bg-purple-600 hover:bg-purple-500 text-white text-sm font-bold px-5 py-3 rounded-xl shadow-lg shadow-purple-600/30 transition-colors text-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-300">
+          Claim partner credits
+        </a>
+      </div>
+      <p class="text-[11px] text-slate-500 mt-3">
+        Estimates use typical public list pricing and will differ from your actual bills. As an affiliate partner, we may earn from qualifying signups at no cost to you.
+      </p>
+    </section>
+  </main>
+
+  <footer class="border-t border-slate-900 py-6 text-center text-xs text-slate-500">
+    &copy; 2026 VendScale Tech
+  </footer>
+
+  <script>
+    // Pricing assumptions: edit these to match the vendors you want to model.
+    const PRICING = {
+      auth: { freeMau: 10000, baseFee: 25, perMau: 0.02 },        // Clerk/Auth0-style
+      aiPerMillionTokens: 2.50,                                    // blended LLM rate
+      email: { freeEmails: 5000, perThousand: 0.80 },              // Resend/SendGrid-style
+      payments: { percent: 0.029, fixedFee: 0.30, payingShare: 0.10 }, // Stripe-style; assumes 10% of MAU transact monthly
+      baseTools: 120                                               // monitoring, error tracking, logging
+    };
+
+    const $ = (id) => document.getElementById(id);
+    const formSection = $('form-section');
+    const results = $('results');
+
+    const usd = (n) =>
+      n.toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+    // Read a numeric input, treating blanks/negatives as 0 and clamping to the field's max.
+    function readNumber(id) {
+      const el = $(id);
+      const value = parseFloat(el.value);
+      const max = parseFloat(el.max);
+      if (!Number.isFinite(value) || value < 0) return 0;
+      return Number.isFinite(max) ? Math.min(value, max) : value;
+    }
+
+    function calculate({ mau, aiTokensM, emails, mrr }) {
+      const { auth, email, payments } = PRICING;
+      const costs = [
+        { label: 'Auth & user management', amount: mau > auth.freeMau ? auth.baseFee + (mau - auth.freeMau) * auth.perMau : 0 },
+        { label: 'AI / LLM tokens', amount: aiTokensM * PRICING.aiPerMillionTokens },
+        { label: 'Transactional email', amount: emails > email.freeEmails ? ((emails - email.freeEmails) / 1000) * email.perThousand : 0 },
+        { label: 'Payment processing', amount: mrr * payments.percent + mau * payments.payingShare * payments.fixedFee },
+        { label: 'Monitoring & base tools', amount: PRICING.baseTools }
+      ];
+      const total = costs.reduce((sum, c) => sum + c.amount, 0);
+      return { costs, total };
+    }
+
+    function renderBreakdown(costs, total) {
+      const list = $('breakdown');
+      list.replaceChildren(...costs.map((c) => {
+        const share = total > 0 ? (c.amount / total) * 100 : 0;
+        const li = document.createElement('li');
+
+        const row = document.createElement('div');
+        row.className = 'flex justify-between text-slate-300';
+        const name = document.createElement('span');
+        name.textContent = c.label;
+        const value = document.createElement('span');
+        value.className = 'font-semibold text-white';
+        value.textContent = usd(c.amount);
+        row.append(name, value);
+
+        const track = document.createElement('div');
+        track.className = 'mt-1 h-1.5 rounded-full bg-slate-800 overflow-hidden';
+        const bar = document.createElement('div');
+        bar.className = 'h-full bg-purple-500';
+        bar.style.width = `${share.toFixed(1)}%`;
+        track.appendChild(bar);
+
+        li.append(row, track);
+        return li;
+      }));
+    }
+
+    $('calc-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      const inputs = {
+        mau: readNumber('mau-input'),
+        aiTokensM: readNumber('ai-tokens'),
+        emails: readNumber('emails-input'),
+        mrr: readNumber('mrr-input')
+      };
+
+      const { costs, total } = calculate(inputs);
+      const hasRevenue = inputs.mrr > 0;
+      const ratio = hasRevenue ? (total / inputs.mrr) * 100 : null;
+
+      $('total-vendor-spend').textContent = usd(total);
+      $('spend-ratio').textContent = hasRevenue ? `${ratio.toFixed(1)}%` : 'n/a';
+      $('annual-spend').textContent = usd(total * 12);
+      renderBreakdown(costs, total);
+
+      const largest = costs.reduce((a, b) => (b.amount > a.amount ? b : a));
+      const share = total > 0 ? Math.round((largest.amount / total) * 100) : 0;
+      const ratioText = hasRevenue ? ` (${ratio.toFixed(1)}% of revenue)` : '';
+      $('vendor-tip').textContent =
+        `At ${inputs.mau.toLocaleString('en-US')} MAU and ${inputs.aiTokensM}M AI tokens a month, your vendor stack costs about ${usd(total)} a month${ratioText}. ` +
+        `${largest.label} is the biggest line at ${share}% of the total, so that's the best place to look for savings first.`;
+
+      formSection.classList.add('hidden');
+      results.classList.remove('hidden');
+      window.scrollTo({ top: 0 });
+      $('results-title').focus({ preventScroll: true });
+    });
+
+    $('recalc-btn').addEventListener('click', () => {
+      results.classList.add('hidden');
+      formSection.classList.remove('hidden');
+      $('mau-input').focus();
+    });
+  </script>
+</body>
+</html>
