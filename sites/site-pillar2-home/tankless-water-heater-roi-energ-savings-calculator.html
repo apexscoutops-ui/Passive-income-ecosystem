@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Estimate tankless water heater energy savings, payback period, and 10-year net savings.">
+  <meta name="theme-color" content="#020617">
+  <title>Tankless Water Heater ROI &amp; Savings Calculator | HotWater Home</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🔥%3C/text%3E%3C/svg%3E">
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-rose-500 selection:text-white">
+
+  <header class="border-b border-slate-800 bg-slate-900/60 backdrop-blur sticky top-0 z-50">
+    <div class="max-w-3xl mx-auto px-4 py-4 flex items-center gap-2">
+      <div class="w-8 h-8 rounded-lg bg-rose-600 flex items-center justify-center text-lg shadow-lg shadow-rose-500/30" aria-hidden="true">🔥</div>
+      <span class="font-bold text-lg tracking-tight">HotWater <span class="text-rose-400">Home</span></span>
+    </div>
+  </header>
+
+  <main class="max-w-3xl mx-auto px-4 py-10 w-full flex-grow">
+
+    <section id="form-section" class="bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-2xl">
+      <h1 class="text-2xl sm:text-3xl font-extrabold mb-3 text-white">Tankless water heater savings calculator</h1>
+      <p class="text-slate-400 mb-6 text-sm sm:text-base leading-relaxed">
+        Compare a traditional tank heater with a tankless unit to estimate your yearly savings and how long the upgrade takes to pay for itself.
+      </p>
+
+      <form id="calc-form" class="space-y-6" novalidate>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label for="household-size" class="block text-sm font-semibold text-slate-200 mb-2">Household size</label>
+            <select id="household-size" class="field">
+              <option value="low">1–2 people</option>
+              <option value="avg" selected>3–4 people</option>
+              <option value="high">5 or more people</option>
+            </select>
+          </div>
+          <div>
+            <label for="fuel-type" class="block text-sm font-semibold text-slate-200 mb-2">Current water heater fuel</label>
+            <select id="fuel-type" class="field">
+              <option value="gas" selected>Natural gas or propane</option>
+              <option value="electric">Electric</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div>
+            <label for="current-bill" class="block text-sm font-semibold text-slate-200 mb-2">Monthly energy bill ($)</label>
+            <input type="number" id="current-bill" value="220" min="50" max="1000" step="10" inputmode="decimal" required class="field" aria-describedby="err-bill">
+            <span id="err-bill" class="err" role="alert"></span>
+          </div>
+          <div>
+            <label for="unit-cost" class="block text-sm font-semibold text-slate-200 mb-2">Tankless unit cost ($)</label>
+            <input type="number" id="unit-cost" value="1200" min="400" max="4000" step="50" inputmode="decimal" required class="field" aria-describedby="err-unit">
+            <span id="err-unit" class="err" role="alert"></span>
+          </div>
+          <div>
+            <label for="install-cost" class="block text-sm font-semibold text-slate-200 mb-2">Install &amp; venting ($)</label>
+            <input type="number" id="install-cost" value="800" min="0" max="5000" step="50" inputmode="decimal" required class="field" aria-describedby="err-install">
+            <span id="err-install" class="err" role="alert"></span>
+          </div>
+        </div>
+
+        <button type="submit" class="w-full bg-rose-600 hover:bg-rose-500 text-white font-semibold py-3.5 rounded-xl shadow-lg shadow-rose-600/30 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-300">
+          Calculate savings
+        </button>
+      </form>
+    </section>
+
+    <section id="results" hidden class="mt-6 bg-gradient-to-br from-rose-950/80 via-slate-900 to-slate-900 border border-rose-500/30 rounded-2xl p-6 sm:p-8 shadow-2xl" aria-labelledby="results-title">
+      <div class="flex justify-between items-start gap-4 mb-6">
+        <h2 id="results-title" tabindex="-1" class="text-2xl font-extrabold text-white outline-none">Your estimated savings</h2>
+        <button type="button" id="recalc-btn" class="shrink-0 text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg border border-slate-700 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-rose-300">Edit inputs</button>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6" aria-live="polite">
+        <div class="bg-slate-950/60 border border-slate-800 p-4 rounded-xl text-center">
+          <span class="text-xs font-semibold text-rose-400">Estimated annual savings</span>
+          <p id="annual-savings" class="text-2xl font-extrabold text-white mt-1">–</p>
+        </div>
+        <div class="bg-slate-950/60 border border-slate-800 p-4 rounded-xl text-center">
+          <span class="text-xs font-semibold text-rose-400">Estimated payback</span>
+          <p id="payback-period" class="text-2xl font-extrabold text-rose-300 mt-1">–</p>
+        </div>
+        <div class="bg-slate-950/60 border border-slate-800 p-4 rounded-xl text-center">
+          <span class="text-xs font-semibold text-emerald-400">Estimated 10-year net</span>
+          <p id="decade-savings" class="text-2xl font-extrabold text-emerald-300 mt-1">–</p>
+        </div>
+      </div>
+
+      <div class="bg-slate-950/60 border border-slate-800 rounded-xl p-4 mb-6">
+        <h3 class="font-bold text-white text-sm mb-1">What this means</h3>
+        <p id="water-tip" class="text-sm text-slate-400 leading-relaxed"></p>
+        <p class="text-xs text-slate-500 mt-3 leading-relaxed">
+          These are rough estimates, not guarantees. They assume water heating is about 18% of your bill and apply savings ranges based on U.S. Department of Energy guidance (24–34% for low hot water use, 8–14% for high use). The DOE doesn't publish separate figures by fuel type, so our electric estimates are a conservative adjustment of our own. Your actual savings depend on how much hot water you use, local energy prices, your current heater, and installation costs.
+        </p>
+      </div>
+
+      <div class="bg-slate-950/80 border border-rose-500/40 rounded-xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div>
+          <h3 class="font-bold text-white text-sm sm:text-base">Ready to compare units?</h3>
+          <p class="text-xs sm:text-sm text-slate-400 mt-1">See tankless heaters, venting kits, and installation supplies.</p>
+        </div>
+        <a id="cta-button" href="https://example.com/affiliate-signup" target="_blank" rel="noopener noreferrer sponsored"
+           class="w-full sm:w-auto whitespace-nowrap bg-rose-600 hover:bg-rose-500 text-white text-sm font-bold px-5 py-3 rounded-xl shadow-lg shadow-rose-600/30 transition-colors text-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-300">
+          View recommended water heaters
+        </a>
+      </div>
+      <p class="text-[11px] text-slate-500 mt-3">Affiliate disclosure: we may earn a commission on qualifying purchases at no cost to you.</p>
+    </section>
+  </main>
+
+  <footer class="border-t border-slate-900 py-6 text-center text-xs text-slate-500">
+    &copy; 2026 HotWater Home
+  </footer>
+
+  <style>
+    .field { width: 100%; background: #020617; border: 1px solid #1e293b; border-radius: 0.75rem; padding: 0.75rem 1rem; color: #fff; transition: border-color .15s; }
+    .field:focus { outline: none; border-color: #f43f5e; }
+    .field[aria-invalid="true"] { border-color: #f87171; }
+    .err { display: block; min-height: 1rem; margin-top: 0.25rem; font-size: 11px; color: #fca5a5; }
+    @media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } }
+  </style>
+
+  <script>
+    // ---- Assumptions (edit here) ----
+    // Source: energy.gov – water heating is about 18% of a home's utility bill.
+    const WATER_HEATING_SHARE = 0.18;
+    // Fraction of water-heating energy saved vs. a tank heater.
+    // Source: energy.gov – 24–34% for homes using ~41 gal/day, 8–14% at ~86 gal/day.
+    // "low" and "high" use those range midpoints; "avg" is interpolated between them.
+    // DOE doesn't split by fuel, so the electric row is a conservative estimate
+    // (about 70% of gas), not a published figure.
+    const SAVINGS_RATE = {
+      gas:      { low: 0.29, avg: 0.20, high: 0.11 },
+      electric: { low: 0.20, avg: 0.14, high: 0.08 }
+    };
+    const HORIZON_YEARS = 10;
+
+    const $ = (id) => document.getElementById(id);
+    const formSection = $('form-section');
+    const results = $('results');
+    const money = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
+
+    const fields = [
+      { id: 'current-bill', err: 'err-bill', label: 'Monthly bill' },
+      { id: 'unit-cost', err: 'err-unit', label: 'Unit cost' },
+      { id: 'install-cost', err: 'err-install', label: 'Install cost' }
+    ];
+
+    function validate() {
+      let ok = true;
+      for (const f of fields) {
+        const input = $(f.id);
+        const v = parseFloat(input.value);
+        const min = parseFloat(input.min), max = parseFloat(input.max);
+        let msg = '';
+        if (Number.isNaN(v)) msg = 'Enter a number.';
+        else if (v < min || v > max) msg = `Enter ${money.format(min)}–${money.format(max)}.`;
+        $(f.err).textContent = msg;
+        input.setAttribute('aria-invalid', msg ? 'true' : 'false');
+        if (msg) ok = false;
+      }
+      return ok;
+    }
+
+    $('calc-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (!validate()) return;
+
+      const usage = $('household-size').value;
+      const fuel = $('fuel-type').value;
+      const bill = parseFloat($('current-bill').value);
+      const installed = parseFloat($('unit-cost').value) + parseFloat($('install-cost').value);
+
+      const annualWaterHeatingCost = bill * 12 * WATER_HEATING_SHARE;
+      const annualSavings = annualWaterHeatingCost * SAVINGS_RATE[fuel][usage];
+      const payback = installed / annualSavings;
+      const netSavings = annualSavings * HORIZON_YEARS - installed;
+
+      $('annual-savings').textContent = money.format(annualSavings);
+      $('payback-period').textContent = `${payback.toFixed(1)} yrs`;
+      $('decade-savings').textContent = money.format(netSavings);
+
+      const verdict = netSavings >= 0
+        ? `Over ${HORIZON_YEARS} years, this estimate puts the upgrade about ${money.format(netSavings)} ahead.`
+        : `Over ${HORIZON_YEARS} years, this estimate puts the upgrade about ${money.format(-netSavings)} behind. Tankless units can last 20 years or more, so it may still pay off if you plan to stay.`;
+      $('water-tip').textContent =
+        `A tank heater keeps stored water hot around the clock, which causes standby energy loss. A tankless unit heats water only on demand, which could save you around ${money.format(annualSavings)} a year if your usage and energy prices match the assumptions below. ${verdict}`;
+
+      formSection.hidden = true;
+      results.hidden = false;
+      $('results-title').focus();
+      results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+
+    $('recalc-btn').addEventListener('click', () => {
+      results.hidden = true;
+      formSection.hidden = false;
+      $('household-size').focus();
+    });
+  </script>
+</body>
+</html>
